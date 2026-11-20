@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    // Remote equipment photos come from imgbb / Unsplash.
     remotePatterns: [
       { protocol: "https", hostname: "i.ibb.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
