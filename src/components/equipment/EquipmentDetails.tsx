@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookingModal } from "@/components/equipment/BookingModal";
+import { ReviewsSection } from "@/components/equipment/ReviewsSection";
 import type { Equipment, FavoriteItem } from "@/types";
 
 function EquipmentDetailsView({ id }: { id: string }) {
@@ -288,6 +289,8 @@ function EquipmentDetailsView({ id }: { id: string }) {
           )}
         </CardContent>
       </Card>
+
+      <ReviewsSection equipmentId={id} />
 
       <BookingModal
         equipment={equipment}

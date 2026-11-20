@@ -92,3 +92,30 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return "Something went wrong";
 }
+
+export async function getReviews(equipmentId: string, page = 1, limit = 10) {
+  const res = await api.get(`/equipment/${equipmentId}/reviews`, {
+    params: { page, limit },
+  });
+  return res.data;
+}
+
+export async function canReview(equipmentId: string) {
+  const res = await api.get(`/equipment/${equipmentId}/reviews/can-review`);
+  return res.data;
+}
+
+export async function createReview(equipmentId: string, payload: { rating: number; comment: string }) {
+  const res = await api.post(`/equipment/${equipmentId}/reviews`, payload);
+  return res.data;
+}
+
+export async function updateReview(reviewId: string, payload: { rating: number; comment: string }) {
+  const res = await api.patch(`/reviews/${reviewId}`, payload);
+  return res.data;
+}
+
+export async function deleteReview(reviewId: string) {
+  const res = await api.delete(`/reviews/${reviewId}`);
+  return res.data;
+}

@@ -37,6 +37,8 @@ export interface Equipment {
   image: string;
   terms: string;
   status: EquipmentStatus;
+  averageRating?: number;
+  reviewCount?: number;
   owner: EquipmentOwner;
   createdAt?: string;
   updatedAt?: string;
@@ -129,6 +131,33 @@ export interface Review {
   rating: number;
   comment: string;
   image?: string;
+}
+
+export interface EquipmentReview {
+  id: string;
+  equipmentId: string;
+  bookingId: string;
+  userEmail: string;
+  userName: string;
+  userAvatar: string;
+  rating: number;
+  comment: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface CanReviewResponse {
+  canReview: boolean;
+  reason: string;
+  myReview: EquipmentReview | null;
+}
+
+export interface EquipmentReviewsResponse {
+  reviews: EquipmentReview[];
+  averageRating: number;
+  totalReviews: number;
+  page?: number;
+  totalPages?: number;
 }
 
 export interface CategoryInfo {
