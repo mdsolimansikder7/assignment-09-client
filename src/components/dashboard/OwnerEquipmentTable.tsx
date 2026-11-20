@@ -5,12 +5,13 @@ import Link from "next/link";
 import { BoxesIcon, EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
+import { cn } from "cn";
 
 import { api, getErrorMessage } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { EquipmentForm, type EquipmentFormValues } from "@/components/equipment/EquipmentForm";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,14 +20,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { Equipment } from "@/types";
 
 export function OwnerEquipmentTable() {
@@ -34,17 +27,11 @@ export function OwnerEquipmentTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Equipment | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  async function fetchEquipment() {
-    const res = await api.get<{ data: Equipment[] }>("/equipment/owner/mine");
-    setEquipment(Array.isArray(res.data?.data) ? res.data.data : []);
-  }
 
   useEffect(() => {
     let cancelled = false;
 
-    async function initialLoad() {
+    async function load() {
       try {
         const res = await api.get<{ data: Equipment[] }>("/equipment/owner/mine");
         if (!cancelled) setEquipment(Array.isArray(res.data?.data) ? res.data.data : []);
@@ -55,26 +42,11 @@ export function OwnerEquipmentTable() {
       }
     }
 
-    initialLoad();
+    load();
     return () => {
       cancelled = true;
     };
   }, []);
-
-  const handleUpdate = async (values: EquipmentFormValues) => {
-    if (!editing) return;
-    setSaving(true);
-    try {
-      await api.put(`/equipment/${editing.id}`, values);
-      toast.success("Equipment updated!");
-      setEditing(null);
-      await fetchEquipment();
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async (item: Equipment) => {
     const result = await Swal.fire({
@@ -82,16 +54,32 @@ export function OwnerEquipmentTable() {
       text: `"${item.name}" will be removed permanently.`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#F97316",
-      cancelButtonColor: "#64748B",
       confirmButtonText: "Yes, delete it",
+      confirmButtonColor: "#ef4444",
     });
+
     if (!result.isConfirmed) return;
 
     try {
       await api.delete(`/equipment/${item.id}`);
-      setEquipment((prev) => prev.filter((eq) => eq.id !== item.id));
+      setEquipment((prev) => prev.filter((e) => e.id !== item.id));
       toast.success("Equipment deleted");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  const handleUpdate = async (values: EquipmentFormValues) => {
+    if (!editing) return;
+
+    try {
+      const res = await api.patch<{ data: Equipment }>(`/equipment/${editing.id}`, values);
+      const updated = res.data?.data;
+      if (updated) {
+        setEquipment((prev) => prev.map((e) => (e.id === editing.id ? updated : e)));
+      }
+      toast.success("Equipment updated");
+      setEditing(null);
     } catch (err) {
       toast.error(getErrorMessage(err));
     }
@@ -99,14 +87,9 @@ export function OwnerEquipmentTable() {
 
   if (loading) {
     return (
-      <div className="space-y-2 rounded-xl border border-border bg-card">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-4">
-            <Skeleton className="h-12 w-16 rounded-md" />
-            <Skeleton className="h-4 flex-1" />
-            <Skeleton className="hidden h-4 w-24 sm:block" />
-            <Skeleton className="h-7 w-40" />
-          </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-16 rounded-xl" />
         ))}
       </div>
     );
@@ -114,8 +97,8 @@ export function OwnerEquipmentTable() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-10 text-center">
-        <p className="font-medium">Your equipment could not be loaded.</p>
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+        <p className="text-sm font-medium text-foreground">Could not load your equipment</p>
         <p className="mt-1 text-sm text-muted-foreground">{error}</p>
       </div>
     );
@@ -123,119 +106,169 @@ export function OwnerEquipmentTable() {
 
   if (equipment.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
-        <BoxesIcon className="mx-auto size-10 text-muted-foreground/60" />
-        <p className="mt-3 font-medium">You have not listed any equipment yet.</p>
+      <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+        <BoxesIcon className="mx-auto size-8 text-muted-foreground/40" />
+        <p className="mt-3 font-medium text-foreground">No equipment yet</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add your first item and start earning.
+          Add your first listing to start receiving bookings.
         </p>
-        <Button
-          className="mt-5 bg-primary text-primary-foreground hover:bg-primary-hover"
-          nativeButton={false}
-          render={<Link href="/dashboard/owner/add-equipment" />}
+        <Link
+          href="/dashboard/owner/add-equipment"
+          className={cn(buttonVariants(), "mt-4 bg-primary text-primary-foreground hover:bg-primary-hover")}
         >
           Add Equipment
-        </Button>
+        </Link>
       </div>
     );
   }
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Equipment</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price / day</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {equipment.map((item, index) => (
-                <TableRow key={item.id ?? `equipment-${index}`}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-11 w-16 shrink-0 rounded-md object-cover"
-                      />
-                      <Link
-                        href={`/equipment/${item.id}`}
-                        className="line-clamp-2 max-w-44 font-medium hover:text-primary"
-                      >
-                        {item.name}
-                      </Link>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {item.category}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(item.rentalPrice)}
-                  </TableCell>
-                  <TableCell>{item.availableQuantity}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={item.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1.5">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`View ${item.name}`}
-                        nativeButton={false}
-                        render={<Link href={`/equipment/${item.id}`} />}
-                      >
-                        <EyeIcon className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Update ${item.name}`}
-                        onClick={() => setEditing(item)}
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Delete ${item.name}`}
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(item)}
-                      >
-                        <Trash2Icon className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+      <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-border bg-card">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[30%]" />
+            <col className="w-[16%]" />
+            <col className="w-[14%]" />
+            <col className="w-[14%]" />
+            <col className="w-[10%]" />
+            <col className="w-[16%]" />
+          </colgroup>
+          <thead className="bg-card">
+            <tr className="border-b border-border">
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Equipment Name</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Category</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Rental Price</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Available Quantity</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {equipment.map((item) => (
+              <tr key={item.id} className="transition hover:bg-muted/40">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="size-10 shrink-0 rounded-md object-cover"
+                    />
+                    <span className="truncate font-medium text-foreground" title={item.name}>
+                      {item.name}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  <span className="block truncate" title={item.category}>{item.category}</span>
+                </td>
+                <td className="px-4 py-3 text-foreground">
+                  {formatCurrency(item.rentalPrice)}/{item.rentalType === "daily" ? "day" : item.rentalType === "weekly" ? "week" : "month"}
+                </td>
+                <td className="px-4 py-3 text-foreground">{item.availableQuantity}</td>
+                <td className="px-4 py-3"><StatusBadge status={item.status} /></td>
+                <td className="px-4 py-3">
+                  <div className="flex justify-end gap-1">
+                    <Link
+                      href={`/equipment/${item.id}`}
+                      aria-label={`View ${item.name}`}
+                      title="View Details"
+                      className={cn(
+                        buttonVariants({ variant: "ghost", size: "icon-sm" }),
+                        "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <EyeIcon className="size-4" />
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Update"
+                      onClick={() => setEditing(item)}
+                    >
+                      <PencilIcon className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Delete"
+                      onClick={() => handleDelete(item)}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <Dialog open={Boolean(editing)} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <div className="space-y-3 md:hidden">
+        {equipment.map((item) => (
+          <div key={item.id} className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.image} alt={item.name} className="size-14 shrink-0 rounded-md object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate font-medium text-foreground" title={item.name}>{item.name}</p>
+                  <StatusBadge status={item.status} />
+                </div>
+                <p className="mt-0.5 text-sm text-muted-foreground">{item.category}</p>
+              </div>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <dt className="text-xs font-medium text-muted-foreground">Rental Price</dt>
+                <dd className="text-foreground">{formatCurrency(item.rentalPrice)}/{item.rentalType === "daily" ? "day" : item.rentalType === "weekly" ? "week" : "month"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-muted-foreground">Available Quantity</dt>
+                <dd className="text-foreground">{item.availableQuantity}</dd>
+              </div>
+            </dl>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={`/equipment/${item.id}`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+              >
+                <EyeIcon className="size-4" /> View Details
+              </Link>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setEditing(item)}>
+                <PencilIcon className="size-4" /> Update
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => handleDelete(item)}
+              >
+                <Trash2Icon className="size-4" /> Delete
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Update Equipment</DialogTitle>
+            <DialogTitle>Update equipment</DialogTitle>
             <DialogDescription>
-              Changes are saved immediately when you press Update.
+              Changes are saved to your listing. Updating an approved item keeps its current approval status.
             </DialogDescription>
           </DialogHeader>
-          <EquipmentForm
-            key={editing?.id ?? "edit"}
-            initial={editing ?? undefined}
-            isSubmitting={saving}
-            submitLabel="Update"
-            onSubmit={handleUpdate}
-          />
+          {editing && (
+            <EquipmentForm
+              initial={editing}
+              submitLabel="Save changes"
+              onSubmit={handleUpdate}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>

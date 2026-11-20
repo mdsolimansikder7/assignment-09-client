@@ -12,7 +12,7 @@ export default function AdminEquipmentPage() {
     <>
       <PageHeader
         title="All Equipment"
-        description="Approve or reject new listings, update details, or remove equipment."
+        description="Review, approve, reject, update, or remove equipment listings."
       />
       <AdminEquipmentTable />
     </>

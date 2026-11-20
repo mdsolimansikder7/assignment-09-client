@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { UserSearchIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Trash2Icon, UserSearchIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 import { api, getErrorMessage } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDate } from "@/lib/format";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -20,12 +23,48 @@ import type { AppUser, UserRole } from "@/types";
 
 const ROLES: UserRole[] = ["customer", "owner", "admin"];
 
+function RoleSelect({
+  userId,
+  current,
+  onChange,
+  disabled,
+}: {
+  userId: string;
+  current: UserRole;
+  onChange: (id: string, role: UserRole) => void;
+  disabled: boolean;
+}) {
+  return (
+    <Select
+      value={current}
+      onValueChange={(v) => onChange(userId, v as UserRole)}
+      disabled={disabled}
+    >
+      <SelectTrigger
+        size="sm"
+        className="w-full min-w-0 rounded-md border-border bg-card text-foreground capitalize disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {ROLES.map((role) => (
+          <SelectItem key={role} value={role} className="capitalize">
+            {role}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function UsersTable() {
+  const { user: me } = useAuth();
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,23 +88,26 @@ export function UsersTable() {
     };
   }, []);
 
-  const filtered = users.filter((u) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return users;
+    return users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.role.toLowerCase().includes(term),
     );
-  });
+  }, [users, search]);
 
-  const handleRoleChange = async (user: AppUser, role: UserRole) => {
-    if (role === user.role) return;
-    setUpdatingId(user.id);
+  const handleChangeRole = async (id: string, role: UserRole) => {
+    setUpdatingId(id);
     try {
-      await api.put(`/users/${user.id}/role`, { role });
-      setUsers((prev) =>
-        prev.map((item) => (item.id === user.id ? { ...item, role } : item))
-      );
+      const res = await api.patch<{ data: AppUser }>(`/users/${id}/role`, { role });
+      const updated = res.data?.data;
+      if (updated) {
+        setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+      }
+      toast.success("Role updated");
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -73,190 +115,191 @@ export function UsersTable() {
     }
   };
 
+  const handleDelete = async (target: AppUser) => {
+    const result = await Swal.fire({
+      title: "Delete this user?",
+      text: `${target.name} (${target.email}) will be removed. This cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (!result.isConfirmed) return;
+
+    setDeletingId(target.id);
+    try {
+      await api.delete(`/users/${target.id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== target.id));
+      toast.success("User deleted");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="max-w-sm">
-          <Input
-            placeholder="Search by name or email…"
-            disabled
-            className="h-10 w-full max-w-sm rounded-lg border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground"
-          />
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-t border-border px-5 py-4 first:border-t-0">
-              <Skeleton className="size-9 rounded-full bg-muted/50" />
-              <Skeleton className="h-10 flex-1 bg-muted/50" />
-              <Skeleton className="h-8 w-32 bg-muted/50" />
-            </div>
-          ))}
-        </div>
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-full max-w-xs rounded-lg" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-16 rounded-xl" />
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-10 text-center">
-        <p className="font-medium text-foreground">Users could not be loaded.</p>
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+        <p className="text-sm font-medium text-foreground">Could not load users</p>
         <p className="mt-1 text-sm text-muted-foreground">{error}</p>
       </div>
     );
   }
 
-  const roleSelectClass = (role: UserRole) => {
-    if (role === "admin") return "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400";
-    if (role === "owner") return "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300";
-    return "border-border bg-background text-foreground";
-  };
-
   return (
     <div className="space-y-4">
-      <div className="max-w-sm">
+      <div className="relative max-w-xs">
+        <UserSearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search by name or email…"
+          placeholder="Search by name, email or role…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-10 w-full max-w-sm rounded-lg border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+          className="pl-9"
         />
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
-          <UserSearchIcon className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-3 font-medium text-foreground">No users found.</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try a different search term.</p>
-        </div>
+        <p className="text-sm text-muted-foreground">No users found.</p>
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
+          <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full table-fixed text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="w-[50%] px-5 py-3 font-medium">User</th>
-                  <th className="w-[25%] px-5 py-3 font-medium">Joined</th>
-                  <th className="w-[25%] px-5 py-3 text-right font-medium">Role</th>
+              <colgroup>
+                <col className="w-[28%]" />
+                <col className="w-[28%]" />
+                <col className="w-[14%]" />
+                <col className="w-[14%]" />
+                <col className="w-[16%]" />
+              </colgroup>
+              <thead className="bg-card">
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Role</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registration Date</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {filtered.map((user, index) => (
-                  <tr
-                    key={user.id ?? `user-${index}`}
-                    className="border-t border-border transition hover:bg-muted/50"
-                  >
-                    <td className="px-5 py-4 align-middle">
-                      <div className="flex items-center gap-3">
-                        <Avatar size="sm" className="h-9 w-9">
-                          <AvatarImage
-                            src={user.photo || undefined}
-                            alt={user.name}
-                            className="rounded-full object-cover"
-                          />
-                          <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-400">
-                            {user.name?.charAt(0)?.toUpperCase() || "G"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-foreground" title={user.name}>
-                            {user.name}
-                          </p>
-                          <p className="truncate text-sm text-muted-foreground" title={user.email}>
-                            {user.email}
-                          </p>
+              <tbody className="divide-y divide-border">
+                {filtered.map((u) => {
+                  const isMe = me?.email === u.email || me?.id === u.id;
+                  const busy = updatingId === u.id || deletingId === u.id;
+                  return (
+                    <tr key={u.id} className="transition hover:bg-muted/40">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar className="size-8 shrink-0">
+                            <AvatarImage src={u.photo || undefined} alt={u.name} />
+                            <AvatarFallback className="bg-orange-500/15 text-xs font-semibold text-orange-600 dark:text-orange-400">
+                              {u.name?.charAt(0)?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate font-medium text-foreground" title={u.name}>
+                            {u.name}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 align-middle text-sm text-muted-foreground">
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td className="px-5 py-4 align-middle">
-                      <div className="flex justify-end">
-                        <Select
-                          value={user.role}
-                          disabled={updatingId === user.id}
-                          onValueChange={(value) =>
-                            handleRoleChange(user, (value ?? "customer") as UserRole)
-                          }
-                        >
-                          <SelectTrigger
-                            className={`h-auto w-36 rounded-full border px-3 py-1.5 text-sm font-medium capitalize dark:[color-scheme:dark] ${roleSelectClass(
-                              user.role
-                            )}`}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="block truncate text-muted-foreground" title={u.email}>
+                          {u.email}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <RoleSelect
+                          userId={u.id}
+                          current={u.role}
+                          onChange={handleChangeRole}
+                          disabled={busy || isMe}
+                        />
+                        {isMe && (
+                          <p className="mt-1 text-xs text-muted-foreground">You</p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(u.createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => handleDelete(u)}
+                            disabled={busy || isMe}
+                            title={isMe ? "You cannot delete your own account" : "Delete user"}
                           >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ROLES.map((role) => (
-                              <SelectItem key={role} value={role} className="capitalize">
-                                {role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                            <Trash2Icon className="size-4" />
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           <div className="space-y-3 md:hidden">
-            {filtered.map((user, index) => (
-              <div
-                key={user.id ?? `user-mobile-${index}`}
-                className="rounded-2xl border border-border bg-card p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar size="sm" className="h-9 w-9">
-                    <AvatarImage
-                      src={user.photo || undefined}
-                      alt={user.name}
-                      className="rounded-full object-cover"
-                    />
-                    <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-400">
-                      {user.name?.charAt(0)?.toUpperCase() || "G"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-foreground">{user.name}</p>
-                    <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            {filtered.map((u) => {
+              const isMe = me?.email === u.email || me?.id === u.id;
+              const busy = updatingId === u.id || deletingId === u.id;
+              return (
+                <div key={u.id} className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="size-10 shrink-0">
+                      <AvatarImage src={u.photo || undefined} alt={u.name} />
+                      <AvatarFallback className="bg-orange-500/15 text-sm font-semibold text-orange-600 dark:text-orange-400">
+                        {u.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground" title={u.name}>{u.name}</p>
+                      <p className="truncate text-sm text-muted-foreground" title={u.email}>{u.email}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Registered: {formatDate(u.createdAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Joined</span>
-                    <span className="text-foreground/80">{formatDate(user.createdAt)}</span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Role</span>
-                    <Select
-                      value={user.role}
-                      disabled={updatingId === user.id}
-                      onValueChange={(value) =>
-                        handleRoleChange(user, (value ?? "customer") as UserRole)
-                      }
+                  <div className="mt-3 grid gap-2">
+                    <div>
+                      <p className="mb-1 text-xs font-medium text-muted-foreground">Role</p>
+                      <RoleSelect
+                        userId={u.id}
+                        current={u.role}
+                        onChange={handleChangeRole}
+                        disabled={busy || isMe}
+                      />
+                      {isMe && <p className="mt-1 text-xs text-muted-foreground">You cannot change your own role.</p>}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => handleDelete(u)}
+                      disabled={busy || isMe}
                     >
-                      <SelectTrigger
-                        className={`h-auto w-36 rounded-full border px-3 py-1.5 text-sm font-medium capitalize dark:[color-scheme:dark] ${roleSelectClass(
-                          user.role
-                        )}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((role) => (
-                          <SelectItem key={role} value={role} className="capitalize">
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Trash2Icon className="size-4" />
+                      {deletingId === u.id ? "Deleting..." : "Delete User"}
+                    </Button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

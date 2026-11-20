@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { api, getErrorMessage } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import {
   Select,
   SelectContent,
@@ -24,28 +25,20 @@ const BOOKING_STATUSES: BookingStatus[] = [
   "cancelled",
 ];
 
-const STATUS_PILL_STYLES: Record<string, string> = {
-  pending: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400",
-  active: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-400",
-  completed: "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400",
-  cancelled: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400",
-  confirmed: "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400",
-};
-
-interface AdminRentalsTableProps {
-  onSelect?: (rental: Booking) => void;
-  title?: string;
-  description?: string;
+function periodDays(startDate?: string, endDate?: string) {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end)) return 0;
+  const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+  return diff >= 0 ? diff + 1 : 0;
 }
 
-export function AdminRentalsTable({
-  onSelect,
-  title = "Recent Rentals",
-  description = "Latest bookings across the platform.",
-}: AdminRentalsTableProps) {
+export function AdminRentalsTable() {
   const [rentals, setRentals] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,194 +60,199 @@ export function AdminRentalsTable({
     };
   }, []);
 
-  const handleStatusChange = async (booking: Booking, status: BookingStatus) => {
-    if (status === booking.bookingStatus) return;
+  const handleStatusChange = async (id: string, bookingStatus: BookingStatus) => {
+    setUpdatingId(id);
     try {
-      await api.patch(`/admin/bookings/${booking.id}`, { bookingStatus: status });
-      setRentals((prev) =>
-        prev.map((item) => (item.id === booking.id ? { ...item, bookingStatus: status } : item))
-      );
+      const res = await api.patch<{ data: Booking }>(`/admin/bookings/${id}`, { bookingStatus });
+      const updated = res.data?.data;
+      if (updated) {
+        setRentals((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      }
+      toast.success("Booking status updated");
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const renderStatusSelect = (rental: Booking, align: "left" | "right" = "left") => (
-    <Select
-      value={rental.bookingStatus}
-      onValueChange={(value) =>
-        handleStatusChange(rental, (value ?? "pending") as BookingStatus)
-      }
-    >
-      <SelectTrigger
-        className={`h-8 w-[130px] rounded-full border px-3 py-1 text-xs font-medium capitalize ${
-          STATUS_PILL_STYLES[rental.bookingStatus] ??
-          "border-border bg-muted/50 text-foreground/80"
-        } ${align === "right" ? "ml-auto" : ""}`}
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {BOOKING_STATUSES.map((status) => (
-          <SelectItem key={status} value={status} className="capitalize">
-            {status}
-          </SelectItem>
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
-      </SelectContent>
-    </Select>
-  );
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+        <p className="text-sm font-medium text-foreground">Could not load rentals</p>
+        <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  if (rentals.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+        <CalendarSearchIcon className="mx-auto size-8 text-muted-foreground/40" />
+        <p className="mt-3 font-medium text-foreground">No rentals yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Platform bookings will appear here.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-foreground">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-
-      {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-t border-border px-5 py-4 first:border-t-0">
-              <Skeleton className="h-10 w-40 bg-muted/50" />
-              <Skeleton className="h-10 flex-1 bg-muted/50" />
-              <Skeleton className="hidden h-10 w-32 bg-muted/50 md:block" />
-              <Skeleton className="h-8 w-24 bg-muted/50" />
-            </div>
-          ))}
-        </div>
-      ) : error ? (
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-10 text-center">
-          <p className="font-medium text-foreground">Rentals could not be loaded.</p>
-          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-        </div>
-      ) : rentals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
-          <CalendarSearchIcon className="mx-auto size-10 text-muted-foreground" />
-          <p className="mt-3 font-medium text-foreground">No bookings yet.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Bookings will appear here as soon as customers start renting.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
-            <table className="w-full table-fixed text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="w-[26%] px-5 py-3 font-medium">Equipment</th>
-                  <th className="w-[20%] px-5 py-3 font-medium">Customer</th>
-                  <th className="w-[17%] px-5 py-3 font-medium">Owner</th>
-                  <th className="w-[17%] px-5 py-3 font-medium">Period</th>
-                  <th className="w-[8%] px-5 py-3 text-right font-medium">Total</th>
-                  <th className="w-[12%] px-5 py-3 text-right font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rentals.map((rental, index) => {
-                  const txn = rental.transactionId || "-";
-                  return (
-                    <tr
-                      key={rental.id ?? `rental-${index}`}
-                      onClick={() => onSelect?.(rental)}
-                      className="border-t border-border transition hover:bg-muted/50"
-                    >
-                      <td className="px-5 py-4 align-middle">
-                        <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
-                          {rental.equipmentName}
-                        </p>
-                        <p
-                          className="truncate text-xs text-muted-foreground"
-                          title={txn}
-                        >
-                          {txn}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 align-middle">
-                        <p className="truncate text-foreground" title={rental.customer?.name || ""}>
-                          {rental.customer?.name || "-"}
-                        </p>
-                        <p
-                          className="truncate text-xs text-muted-foreground"
-                          title={rental.customer?.email || ""}
-                        >
-                          {rental.customer?.email || "-"}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 align-middle">
-                        <p className="truncate text-foreground/80" title={rental.ownerEmail || ""}>
-                          {rental.ownerEmail || "-"}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 align-middle text-foreground/80">
-                        <p>{formatDate(rental.startDate)}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(rental.endDate)}</p>
-                      </td>
-                      <td className="px-5 py-4 text-right align-middle font-semibold text-foreground">
-                        {formatCurrency(rental.totalAmount)}
-                      </td>
-                      <td className="px-5 py-4 align-middle">
-                        <div className="flex justify-end">
-                          {renderStatusSelect(rental, "right")}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="space-y-3 md:hidden">
-            {rentals.map((rental, index) => {
-              const txn = rental.transactionId || "-";
+    <>
+      <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-border bg-card">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[16%]" />
+            <col className="w-[14%]" />
+            <col className="w-[10%]" />
+            <col className="w-[10%]" />
+            <col className="w-[14%]" />
+          </colgroup>
+          <thead className="bg-card">
+            <tr className="border-b border-border">
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Customer Information</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Owner Information</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Equipment Name</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Rental Duration</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Booking Amount</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Payment Status</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Booking Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rentals.map((rental) => {
+              const days = periodDays(rental.startDate, rental.endDate);
               return (
-                <div
-                  key={rental.id ?? `rental-mobile-${index}`}
-                  onClick={() => onSelect?.(rental)}
-                  className="rounded-2xl border border-border bg-card p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
-                        {rental.equipmentName}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground" title={txn}>
-                        Txn: {txn}
-                      </p>
+                <tr key={rental.id} className="align-top transition hover:bg-muted/40">
+                  <td className="px-4 py-3">
+                    <p className="truncate font-medium text-foreground" title={rental.customer?.name || "—"}>
+                      {rental.customer?.name || "—"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground" title={rental.customer?.email || ""}>
+                      {rental.customer?.email || "—"}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="truncate text-foreground" title={rental.ownerEmail || "—"}>
+                      {rental.ownerEmail || "—"}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
+                      {rental.equipmentName}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3 text-foreground">
+                    <div className="whitespace-normal leading-snug">
+                      <span className="block">{formatDate(rental.startDate)}</span>
+                      <span className="block text-muted-foreground">to {formatDate(rental.endDate)}</span>
+                      {days > 0 && (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">({days} day{days === 1 ? "" : "s"})</span>
+                      )}
                     </div>
-                    <div className="shrink-0">{renderStatusSelect(rental)}</div>
-                  </div>
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">Customer</span>
-                      <div className="min-w-0 text-right">
-                        <p className="truncate text-foreground">{rental.customer?.name || "-"}</p>
-                        <p className="truncate text-xs text-muted-foreground">{rental.customer?.email || "-"}</p>
-                      </div>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">Owner</span>
-                      <span className="truncate text-right text-foreground/80" title={rental.ownerEmail || ""}>
-                        {rental.ownerEmail || "-"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">Period</span>
-                      <span className="text-right text-foreground/80">
-                        {formatDate(rental.startDate)} – {formatDate(rental.endDate)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(rental.totalAmount)}</span>
-                    </div>
-                  </div>
-                </div>
+                  </td>
+                  <td className="px-4 py-3 text-foreground">{formatCurrency(rental.totalAmount)}</td>
+                  <td className="px-4 py-3"><StatusBadge status={rental.paymentStatus} /></td>
+                  <td className="px-4 py-3">
+                    <Select
+                      value={rental.bookingStatus}
+                      onValueChange={(v) => handleStatusChange(rental.id, v as BookingStatus)}
+                      disabled={updatingId === rental.id}
+                    >
+                      <SelectTrigger
+                        size="sm"
+                        className="w-full min-w-0 rounded-md border-border bg-card text-foreground capitalize disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BOOKING_STATUSES.map((status) => (
+                          <SelectItem key={status} value={status} className="capitalize">
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </td>
+                </tr>
               );
             })}
-          </div>
-        </>
-      )}
-    </section>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {rentals.map((rental) => {
+          const days = periodDays(rental.startDate, rental.endDate);
+          return (
+            <div key={rental.id} className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-foreground" title={rental.equipmentName}>{rental.equipmentName}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground" title={rental.ownerEmail}>Owner: {rental.ownerEmail || "—"}</p>
+                </div>
+                <StatusBadge status={rental.paymentStatus} />
+              </div>
+
+              <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                <div className="min-w-0">
+                  <dt className="text-xs font-medium text-muted-foreground">Customer Information</dt>
+                  <dd className="truncate text-foreground" title={rental.customer?.name || "—"}>{rental.customer?.name || "—"}</dd>
+                  <dd className="truncate text-xs text-muted-foreground" title={rental.customer?.email || ""}>{rental.customer?.email || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium text-muted-foreground">Rental Duration</dt>
+                  <dd className="whitespace-normal leading-snug text-foreground">
+                    <span className="block">{formatDate(rental.startDate)}</span>
+                    <span className="block text-muted-foreground">to {formatDate(rental.endDate)}</span>
+                    {days > 0 && <span className="block text-xs text-muted-foreground">({days} day{days === 1 ? "" : "s"})</span>}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-medium text-muted-foreground">Booking Amount</dt>
+                  <dd className="font-medium text-foreground">{formatCurrency(rental.totalAmount)}</dd>
+                </div>
+                <div>
+                  <dt className="mb-1 text-xs font-medium text-muted-foreground">Booking Status</dt>
+                  <dd>
+                    <Select
+                      value={rental.bookingStatus}
+                      onValueChange={(v) => handleStatusChange(rental.id, v as BookingStatus)}
+                      disabled={updatingId === rental.id}
+                    >
+                      <SelectTrigger
+                        size="sm"
+                        className="w-full min-w-0 rounded-md border-border bg-card text-foreground capitalize"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BOOKING_STATUSES.map((status) => (
+                          <SelectItem key={status} value={status} className="capitalize">
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -12,7 +12,7 @@ export default function AdminUsersPage() {
     <>
       <PageHeader
         title="All Users"
-        description="Search users and change their roles (customer, owner or admin)."
+        description="Search users, change roles, or remove users when needed."
       />
       <UsersTable />
     </>

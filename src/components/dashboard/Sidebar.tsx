@@ -41,21 +41,21 @@ export const DASHBOARD_NAV: Record<UserRole, NavLink[]> = {
     { href: "/dashboard/customer", label: "Overview", Icon: BarChart3Icon },
     { href: "/dashboard/customer/my-rentals", label: "My Rentals", Icon: CalendarClockIcon },
     { href: "/dashboard/customer/favorites", label: "Favorites", Icon: HeartIcon },
-    { href: "/dashboard/customer/profile", label: "Profile", Icon: UserIcon },
+    { href: "/dashboard/customer/profile", label: "My Profile", Icon: UserIcon },
   ],
   owner: [
     { href: "/dashboard/owner", label: "Overview", Icon: BarChart3Icon },
     { href: "/dashboard/owner/add-equipment", label: "Add Equipment", Icon: PlusIcon },
     { href: "/dashboard/owner/my-equipment", label: "My Equipment", Icon: BoxesIcon },
     { href: "/dashboard/owner/my-rentals", label: "My Rentals", Icon: CalendarClockIcon },
-    { href: "/dashboard/owner/profile", label: "Profile", Icon: UserIcon },
+    { href: "/dashboard/owner/profile", label: "My Profile", Icon: UserIcon },
   ],
   admin: [
     { href: "/dashboard/admin", label: "Overview", Icon: BarChart3Icon },
     { href: "/dashboard/admin/users", label: "All Users", Icon: UsersIcon },
     { href: "/dashboard/admin/equipment", label: "All Equipment", Icon: BoxesIcon },
     { href: "/dashboard/admin/rentals", label: "All Rentals", Icon: CalendarClockIcon },
-    { href: "/dashboard/admin/profile", label: "Profile", Icon: UserIcon },
+    { href: "/dashboard/admin/profile", label: "My Profile", Icon: UserIcon },
   ],
 };
 

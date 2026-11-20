@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { AdminRentalsTable } from "@/components/dashboard/AdminRentalsTable";
 
 export const metadata: Metadata = {
@@ -8,9 +9,12 @@ export const metadata: Metadata = {
 
 export default function AdminRentalsPage() {
   return (
-    <AdminRentalsTable
-      title="All Rentals"
-      description="Every booking made on GearLoop."
-    />
+    <>
+      <PageHeader
+        title="All Rentals"
+        description="Monitor and manage all bookings on GearLoop."
+      />
+      <AdminRentalsTable />
+    </>
   );
 }

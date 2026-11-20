@@ -12,7 +12,7 @@ export default function OwnerRentalsPage() {
     <>
       <PageHeader
         title="My Rentals"
-        description="Bookings made against your equipment."
+        description="Manage rental activity for your equipment."
       />
       <OwnerRentalsTable />
     </>
