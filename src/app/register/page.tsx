@@ -4,8 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerRegisterForm } from "@/components/auth/CustomerRegisterForm";
 import { OwnerRegisterForm } from "@/components/auth/OwnerRegisterForm";
@@ -59,28 +57,24 @@ function RegisterFormTabs() {
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <section className="flex min-h-[70vh] items-center justify-center py-16">
-          <div className="container-page w-full max-w-md">
-            <Card>
-              <CardHeader className="text-center">
-                <CardTitle className="font-heading text-2xl">Create account</CardTitle>
-                <CardDescription>
-                  Join GearLoop to rent or list equipment.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <Suspense fallback={<div className="h-72" />}>
-                  <RegisterFormTabs />
-                </Suspense>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </div>
+    <main className="flex-1">
+      <section className="flex min-h-[70vh] items-center justify-center py-16">
+        <div className="container-page w-full max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="font-heading text-2xl">Create account</CardTitle>
+              <CardDescription>
+                Join GearLoop to rent or list equipment.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <Suspense fallback={<div className="h-72" />}>
+                <RegisterFormTabs />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </main>
   );
 }

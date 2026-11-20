@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 
 const NAV_LINKS = [
@@ -45,20 +46,15 @@ export function Navbar() {
   const { user, isLoading, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const dashboardHref = user?.role ? `/dashboard/${user.role}` : "/dashboard";
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href.startsWith("/dashboard")) return pathname.startsWith("/dashboard");
+    if (href === dashboardHref || href.startsWith("/dashboard")) {
+      return pathname.startsWith("/dashboard");
+    }
     return pathname.startsWith(href);
   };
-
-  const dashboardHref =
-    user?.role === "customer"
-      ? "/dashboard/customer/my-rentals"
-      : user?.role === "owner"
-        ? "/dashboard/owner/my-equipment"
-        : user?.role === "admin"
-          ? "/dashboard/admin"
-          : "/dashboard";
 
   const profileHref = user?.role
     ? `/dashboard/${user.role}/profile`
@@ -116,6 +112,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
+          {!isLoading && user ? <NotificationBell /> : null}
 
           {isLoading ? (
             <div className="h-8 w-32 animate-pulse rounded-md bg-muted" />

@@ -11,8 +11,6 @@ import { authClient } from "@/lib/auth-client";
 import { fetchApiToken } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { validateEmail, validatePassword } from "@/lib/validation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -183,18 +181,14 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <section className="flex min-h-[70vh] items-center justify-center py-16">
-          <div className="container-page w-full max-w-md">
-            <Suspense fallback={<div className="h-96 rounded-xl bg-muted" />}>
-              <LoginForm />
-            </Suspense>
-          </div>
-        </section>
-      </main>
-      <Footer />
-    </div>
+    <main className="flex-1">
+      <section className="flex min-h-[70vh] items-center justify-center py-16">
+        <div className="container-page w-full max-w-md">
+          <Suspense fallback={<div className="h-96 rounded-xl bg-muted" />}>
+            <LoginForm />
+          </Suspense>
+        </div>
+      </section>
+    </main>
   );
 }

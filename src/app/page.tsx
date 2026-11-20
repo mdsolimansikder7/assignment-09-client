@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { Banner } from "@/components/home/Banner";
 import { FeaturedEquipment } from "@/components/home/FeaturedEquipment";
 import { Categories } from "@/components/home/Categories";
@@ -20,18 +18,14 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <Banner />
-        <FeaturedEquipment />
-        <Categories />
-        <WhyChooseUs />
-        <Reviews />
-        <HowItWorks />
-        <RecentlyAdded />
-      </main>
-      <Footer />
-    </div>
+    <main className="flex-1">
+      <Banner />
+      <FeaturedEquipment />
+      <Categories />
+      <WhyChooseUs />
+      <Reviews />
+      <HowItWorks />
+      <RecentlyAdded />
+    </main>
   );
 }
