@@ -27,7 +27,6 @@ const item = {
 export function Banner() {
   return (
     <section className="relative overflow-hidden bg-[#0F172A] text-white">
-      {/* Orange glow + subtle grid texture */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(249,115,22,0.35),transparent_55%)]"
@@ -85,7 +84,6 @@ export function Banner() {
             />
           </motion.div>
 
-          {/* Stats */}
           <motion.div
             variants={item}
             className="mt-14 grid grid-cols-3 gap-6 border-t border-white/10 pt-8"
@@ -106,7 +104,6 @@ export function Banner() {
           </motion.div>
         </motion.div>
 
-        {/* Hero visual */}
         <motion.div variants={item} className="relative mx-auto w-full max-w-lg lg:max-w-none">
           <div className="overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
             <Image
@@ -119,7 +116,6 @@ export function Banner() {
             />
           </div>
 
-          {/* Floating price card */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

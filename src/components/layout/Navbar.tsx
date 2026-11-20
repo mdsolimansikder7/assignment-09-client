@@ -45,18 +45,12 @@ export function Navbar() {
   const { user, isLoading, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // The home link should only be active on "/".
-  // Dashboard is active when the path starts with /dashboard.
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href.startsWith("/dashboard")) return pathname.startsWith("/dashboard");
     return pathname.startsWith(href);
   };
 
-  // Role-based dashboard link:
-  // customer -> /dashboard/customer/my-rentals
-  // owner -> /dashboard/owner/my-equipment
-  // admin -> /dashboard/admin
   const dashboardHref =
     user?.role === "customer"
       ? "/dashboard/customer/my-rentals"
@@ -78,7 +72,6 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="container-page flex h-16 items-center justify-between gap-4">
-        {/* Logo + brand name (same on every page) */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -93,7 +86,6 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop navigation */}
         <nav className="hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((link) => (
             <Link
@@ -122,12 +114,10 @@ export function Navbar() {
           )}
         </nav>
 
-        {/* Right side: theme + auth */}
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
 
           {isLoading ? (
-            // Keep the space stable while the session loads.
             <div className="h-8 w-32 animate-pulse rounded-md bg-muted" />
           ) : user ? (
             <DropdownMenu>
@@ -195,7 +185,6 @@ export function Navbar() {
             </div>
           )}
 
-          {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               render={

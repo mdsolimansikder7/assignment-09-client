@@ -10,7 +10,6 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-// Builds a compact page list: 1 … 4 5 6 … 12
 function getPages(current: number, total: number): (number | "…")[] {
   if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
   const pages = new Set<number>([1, total, current]);

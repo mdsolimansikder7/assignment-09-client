@@ -2,7 +2,6 @@
 
 import { Toaster } from "react-hot-toast";
 
-// One global toast container so every page can call toast.success/error.
 export function ToasterProvider() {
   return (
     <Toaster

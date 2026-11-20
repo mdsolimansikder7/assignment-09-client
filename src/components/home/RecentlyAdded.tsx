@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Equipment } from "@/types";
 
-// Backend contract: GET /equipment/featured → { data: Equipment[] } (6 items, newest first)
 
 export function RecentlyAdded() {
   const [items, setItems] = useState<Equipment[]>([]);
@@ -22,7 +21,6 @@ export function RecentlyAdded() {
         const res = await api.get<{ data: Equipment[] }>("/equipment/featured");
         if (!cancelled) setItems(Array.isArray(res.data?.data) ? res.data.data.slice(0, 3) : []);
       } catch {
-        // Recently added is optional — stay silent on failure.
       } finally {
         if (!cancelled) setLoading(false);
       }

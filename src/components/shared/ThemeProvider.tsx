@@ -2,7 +2,6 @@
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-// Dark/Light theme provider — the choice is saved in localStorage by next-themes.
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider

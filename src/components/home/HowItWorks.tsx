@@ -45,7 +45,6 @@ export function HowItWorks() {
         </div>
 
         <div className="relative mt-14 grid gap-8 md:grid-cols-3">
-          {/* Connector line */}
           <div
             aria-hidden
             className="absolute top-10 right-[16%] left-[16%] hidden h-px bg-border md:block"

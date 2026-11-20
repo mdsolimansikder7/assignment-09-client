@@ -23,7 +23,6 @@ export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-secondary">
       <div className="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Brand */}
         <div>
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -58,7 +57,6 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Quick links */}
         <div>
           <h3 className="text-sm font-semibold tracking-wide text-foreground uppercase">
             Quick Links
@@ -77,7 +75,6 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Categories */}
         <div>
           <h3 className="text-sm font-semibold tracking-wide text-foreground uppercase">
             Categories
@@ -96,7 +93,6 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Contact */}
         <div>
           <h3 className="text-sm font-semibold tracking-wide text-foreground uppercase">
             Get in Touch

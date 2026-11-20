@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Equipment } from "@/types";
 
-// Backend contract: GET /equipment/featured → { data: Equipment[] } (6 items)
 
 export function FeaturedEquipment() {
   const [items, setItems] = useState<Equipment[]>([]);

@@ -6,8 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Loader } from "@/components/shared/Loader";
 import { useAuth } from "@/hooks/useAuth";
 
-// Guards pages that only need a logged-in user (no specific role).
-// Always waits for the auth state first so reloads never bounce to /login.
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
