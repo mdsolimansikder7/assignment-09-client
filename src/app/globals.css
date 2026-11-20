@@ -49,25 +49,24 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* GearLoop brand theme — orange #F97316 / navy #0F172A */
 :root {
-  --background: oklch(1 0 0); /* #FFFFFF */
-  --foreground: oklch(0.208 0.042 265.755); /* #0F172A */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.208 0.042 265.755);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.208 0.042 265.755);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.208 0.042 265.755);
-  --primary: oklch(0.705 0.213 47.604); /* #F97316 */
-  --primary-hover: oklch(0.646 0.222 41.116); /* #EA580C */
+  --primary: oklch(0.705 0.213 47.604);
+  --primary-hover: oklch(0.646 0.222 41.116);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.984 0.003 247.858); /* #F8FAFC */
+  --secondary: oklch(0.984 0.003 247.858);
   --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896); /* #F1F5F9 */
-  --muted-foreground: oklch(0.554 0.046 257.417); /* #64748B */
-  --accent: oklch(0.98 0.016 73.684); /* #FFF7ED */
-  --accent-foreground: oklch(0.553 0.195 38.402); /* #C2410C */
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.98 0.016 73.684);
+  --accent-foreground: oklch(0.553 0.195 38.402);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508); /* #E2E8F0 */
+  --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.705 0.213 47.604);
   --chart-1: oklch(0.705 0.213 47.604);
@@ -76,7 +75,6 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.554 0.046 257.417);
   --radius: 0.75rem;
-  /* Dashboard sidebar is always dark navy */
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
   --sidebar-primary: oklch(0.705 0.213 47.604);
@@ -144,12 +142,10 @@
   }
 }
 
-/* Shared page wrapper so every section lines up on all screens */
 @utility container-page {
   @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
 }
 
-/* Section heading styles — same look everywhere */
 @utility section-title {
   @apply font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl;
 }
