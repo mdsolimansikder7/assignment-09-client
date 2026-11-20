@@ -28,6 +28,14 @@ import type { Booking, BookingStatus } from "@/types";
 
 type StatusFilter = "all" | "confirmed" | "active" | "completed" | "cancelled";
 
+const FILTER_LABELS: Record<StatusFilter, string> = {
+  all: "All",
+  confirmed: "Confirmed",
+  active: "Active",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
 interface PendingStatusChange {
   booking: Booking;
   nextStatus: BookingStatus;
@@ -188,13 +196,13 @@ export function OwnerRentalsTable() {
       >
         <SelectTrigger
           size="sm"
-          className="w-full min-w-0 rounded-lg border border-border bg-card px-3 text-foreground capitalize disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg border border-border bg-card px-3 text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <SelectValue />
+          <span className="truncate">{statusLabel(rental.bookingStatus)}</span>
         </SelectTrigger>
         <SelectContent side="bottom" align="start" sideOffset={4} alignItemWithTrigger={false} className="z-[60]">
           {nextStatuses.map((status) => (
-            <SelectItem key={status} value={status} className="capitalize">
+            <SelectItem key={status} value={status}>
               {statusLabel(status)}
             </SelectItem>
           ))}
@@ -224,14 +232,15 @@ export function OwnerRentalsTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           {summary.active} active, {summary.toHandOver} to hand over
         </p>
-        <div className="w-full sm:w-56">
+        <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+          <span className="text-sm font-medium text-foreground">Status</span>
           <Select value={filter} onValueChange={(v) => setFilter(v as StatusFilter)}>
-            <SelectTrigger className="w-full rounded-lg border border-border bg-card text-foreground">
-              <SelectValue placeholder="Filter by status" />
+            <SelectTrigger className="w-full rounded-lg border border-border bg-card text-foreground sm:w-44">
+              <span className="truncate">{FILTER_LABELS[filter]}</span>
             </SelectTrigger>
             <SelectContent side="bottom" align="start" sideOffset={4} alignItemWithTrigger={false} className="z-[60]">
               <SelectItem value="all">All</SelectItem>
@@ -255,13 +264,13 @@ export function OwnerRentalsTable() {
           <div className="hidden md:block w-full rounded-xl border border-border bg-card">
             <table className="w-full table-fixed text-sm">
               <colgroup>
-                <col className="w-[20%]" />
-                <col className="w-[24%]" />
+                <col className="w-[18%]" />
+                <col className="w-[22%]" />
                 <col className="w-[16%]" />
                 <col className="w-[8%]" />
                 <col className="w-[12%]" />
-                <col className="w-[10%]" />
-                <col className="w-[10%]" />
+                <col className="w-[9%]" />
+                <col className="w-[150px] min-w-[150px]" />
               </colgroup>
               <thead className="bg-card">
                 <tr className="border-b border-border">
@@ -271,7 +280,7 @@ export function OwnerRentalsTable() {
                   <th className="px-4 py-4 text-left font-medium text-muted-foreground">Qty</th>
                   <th className="px-4 py-4 text-left font-medium text-muted-foreground">Booking Amount</th>
                   <th className="px-4 py-4 text-left font-medium text-muted-foreground">Payment Status</th>
-                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Booking Status</th>
+                  <th className="px-4 py-4 pr-4 text-left font-medium text-muted-foreground w-[150px] min-w-[150px]">Booking Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -296,7 +305,7 @@ export function OwnerRentalsTable() {
                             <img
                               src={rental.equipmentImage}
                               alt={rental.equipmentName}
-                              className="size-10 shrink-0 rounded-md object-cover border border-border bg-muted"
+                              className="size-10 shrink-0 rounded-md border border-border bg-muted object-cover"
                             />
                           ) : (
                             <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground">
@@ -329,7 +338,7 @@ export function OwnerRentalsTable() {
                       <td className="px-4 py-4 text-foreground">{rental.quantity}</td>
                       <td className="px-4 py-4 font-medium text-foreground">{formatCurrency(rental.totalAmount)}</td>
                       <td className="px-4 py-4"><PaymentPill status={rental.paymentStatus} /></td>
-                      <td className="px-4 py-4">{renderBookingStatusControl(rental)}</td>
+                      <td className="w-[150px] min-w-[150px] px-4 py-4 pr-4">{renderBookingStatusControl(rental)}</td>
                     </tr>
                   );
                 })}
