@@ -12,13 +12,13 @@ interface StatCardProps {
 
 export function StatCard({ label, value, Icon }: StatCardProps) {
   return (
-    <div className="flex h-full items-center gap-4 rounded-2xl border border-white/10 bg-[#111827] p-5 transition hover:-translate-y-0.5">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-400">
+    <div className="flex h-full items-center gap-4 rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400">
         <Icon className="size-5" />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm text-gray-400">{label}</p>
-        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="truncate text-sm text-muted-foreground">{label}</p>
+        <p className="text-2xl font-bold text-foreground">{value}</p>
       </div>
     </div>
   );

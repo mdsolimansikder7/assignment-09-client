@@ -90,8 +90,10 @@ export function NotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center justify-between">
-            <span>Notifications</span>
+          <div className="flex items-center justify-between px-1.5 py-1">
+            <DropdownMenuLabel className="p-0 text-xs font-medium text-muted-foreground">
+              Notifications
+            </DropdownMenuLabel>
             {unreadCount > 0 && (
               <button
                 type="button"
@@ -101,7 +103,7 @@ export function NotificationBell() {
                 Mark all read
               </button>
             )}
-          </DropdownMenuLabel>
+          </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {loading ? (

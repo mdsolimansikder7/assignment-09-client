@@ -25,18 +25,18 @@ export function DashboardShell({ role, children }: DashboardShellProps) {
 
   if (isLoading || !isLoggedIn || !user) {
     return (
-      <div className="min-h-screen bg-[#0b1220] text-gray-100 [color-scheme:dark]">
+      <div className="min-h-screen bg-background text-foreground dark:dark:[color-scheme:dark]">
         <Loader label="Loading your dashboard…" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0b1220] text-gray-100 [color-scheme:dark]">
+    <div className="min-h-screen bg-background text-foreground dark:dark:[color-scheme:dark]">
       <DashboardSidebar role={role} user={user} />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-64">
         <TopBar />
-        <main className="mx-auto w-full max-w-7xl flex-1 bg-[#0b1220] p-4 md:p-6">
+        <main className="mx-auto w-full max-w-7xl flex-1 bg-background p-4 md:p-6">
           {children}
         </main>
       </div>

@@ -6,6 +6,7 @@ import { SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -38,32 +39,33 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#0b1220] px-4 py-3 text-gray-100 md:px-6">
+    <header className="flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-3 text-foreground md:px-6">
       <div className="flex min-w-0 flex-1 items-center">
         <div className="relative w-full max-w-xs sm:max-w-sm">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 w-full rounded-lg border border-white/10 bg-[#111827] pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+            className="h-10 w-full rounded-lg border-border bg-card pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
           />
         </div>
       </div>
 
       <div className="hidden flex-1 justify-center sm:flex">
-        <h1 className="text-sm font-semibold text-white md:text-base">
+        <h1 className="text-sm font-semibold text-foreground md:text-base">
           {roleLabel} Dashboard
         </h1>
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-3">
+        <ThemeToggle />
         <NotificationBell />
         <DropdownMenu open={open} onOpenChange={setOpen}>
-          <DropdownMenuTrigger className="rounded-full outline-none ring-offset-[#0b1220] transition focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-offset-2">
+          <DropdownMenuTrigger className="rounded-full outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-offset-2">
             <Avatar size="sm" className="cursor-pointer">
               <AvatarImage src={user.photo || undefined} alt={user.name} />
-              <AvatarFallback className="bg-orange-500/15 font-semibold text-orange-400">
+              <AvatarFallback className="bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-400">
                 {user.name?.charAt(0)?.toUpperCase() || "G"}
               </AvatarFallback>
             </Avatar>

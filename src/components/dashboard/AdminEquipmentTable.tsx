@@ -129,13 +129,13 @@ export function AdminEquipmentTable() {
         <div className="w-44">
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-t border-white/5 px-5 py-4 first:border-t-0">
-              <Skeleton className="h-12 w-16 rounded-md bg-white/10" />
-              <Skeleton className="h-10 flex-1 bg-white/10" />
-              <Skeleton className="hidden h-8 w-28 bg-white/10 md:block" />
-              <Skeleton className="h-8 w-32 bg-white/10" />
+            <div key={i} className="flex items-center gap-4 border-t border-border px-5 py-4 first:border-t-0">
+              <Skeleton className="h-12 w-16 rounded-md bg-muted/50" />
+              <Skeleton className="h-10 flex-1 bg-muted/50" />
+              <Skeleton className="hidden h-8 w-28 bg-muted/50 md:block" />
+              <Skeleton className="h-8 w-32 bg-muted/50" />
             </div>
           ))}
         </div>
@@ -146,8 +146,8 @@ export function AdminEquipmentTable() {
   if (error) {
     return (
       <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-10 text-center">
-        <p className="font-medium text-white">Equipment could not be loaded.</p>
-        <p className="mt-1 text-sm text-gray-400">{error}</p>
+        <p className="font-medium text-foreground">Equipment could not be loaded.</p>
+        <p className="mt-1 text-sm text-muted-foreground">{error}</p>
       </div>
     );
   }
@@ -156,7 +156,7 @@ export function AdminEquipmentTable() {
     <>
       <div className="mb-4">
         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value ?? "all")}>
-          <SelectTrigger className="h-10 w-44 rounded-lg border border-white/10 bg-transparent">
+          <SelectTrigger className="h-10 w-44 rounded-lg border border-border bg-transparent">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -170,15 +170,15 @@ export function AdminEquipmentTable() {
       </div>
 
       {equipment.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-[#111827] p-12 text-center">
-          <BoxesIcon className="mx-auto size-10 text-gray-500" />
-          <p className="mt-3 font-medium text-white">No equipment found.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+          <BoxesIcon className="mx-auto size-10 text-muted-foreground" />
+          <p className="mt-3 font-medium text-foreground">No equipment found.</p>
         </div>
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-[#111827] md:block">
+          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
             <table className="w-full table-fixed text-sm">
-              <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-gray-400">
+              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="w-[30%] px-5 py-3 font-medium">Equipment</th>
                   <th className="w-[20%] px-5 py-3 font-medium">Owner</th>
@@ -191,7 +191,7 @@ export function AdminEquipmentTable() {
                 {equipment.map((item, index) => (
                   <tr
                     key={item.id ?? `equipment-${index}`}
-                    className="border-t border-white/5 transition hover:bg-white/5"
+                    className="border-t border-border transition hover:bg-muted/50"
                   >
                     <td className="px-5 py-4 align-middle">
                       <div className="flex items-center gap-3">
@@ -204,28 +204,28 @@ export function AdminEquipmentTable() {
                         <div className="min-w-0">
                           <Link
                             href={`/equipment/${item.id}`}
-                            className="block truncate font-medium text-white hover:text-primary"
+                            className="block truncate font-medium text-foreground hover:text-primary"
                             title={item.name}
                           >
                             {item.name}
                           </Link>
-                          <p className="truncate text-xs text-gray-400" title={item.category}>
+                          <p className="truncate text-xs text-muted-foreground" title={item.category}>
                             {item.category}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-middle text-gray-300">
+                    <td className="px-5 py-4 align-middle text-foreground/80">
                       <p className="truncate" title={item.owner?.name || item.owner?.email || ""}>
                         {item.owner?.name || item.owner?.email || "-"}
                       </p>
                       {item.owner?.name && item.owner?.email ? (
-                        <p className="truncate text-xs text-gray-400" title={item.owner.email}>
+                        <p className="truncate text-xs text-muted-foreground" title={item.owner.email}>
                           {item.owner.email}
                         </p>
                       ) : null}
                     </td>
-                    <td className="px-5 py-4 text-right align-middle font-semibold text-white">
+                    <td className="px-5 py-4 text-right align-middle font-semibold text-foreground">
                       {formatCurrency(item.rentalPrice)}
                     </td>
                     <td className="px-5 py-4 align-middle">
@@ -238,7 +238,7 @@ export function AdminEquipmentTable() {
                             variant="ghost"
                             size="icon-sm"
                             aria-label={`Approve ${item.name}`}
-                            className="text-emerald-400 hover:text-emerald-300"
+                            className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
                             onClick={() => handleStatus(item, "approved")}
                           >
                             <CheckIcon className="size-4" />
@@ -249,7 +249,7 @@ export function AdminEquipmentTable() {
                             variant="ghost"
                             size="icon-sm"
                             aria-label={`Reject ${item.name}`}
-                            className="text-amber-400 hover:text-amber-300"
+                            className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
                             onClick={() => handleStatus(item, "rejected")}
                           >
                             <XIcon className="size-4" />
@@ -293,7 +293,7 @@ export function AdminEquipmentTable() {
             {equipment.map((item, index) => (
               <div
                 key={item.id ?? `equipment-mobile-${index}`}
-                className="rounded-2xl border border-white/10 bg-[#111827] p-4"
+                className="rounded-2xl border border-border bg-card p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -306,34 +306,34 @@ export function AdminEquipmentTable() {
                     <div className="min-w-0">
                       <Link
                         href={`/equipment/${item.id}`}
-                        className="block truncate font-medium text-white hover:text-primary"
+                        className="block truncate font-medium text-foreground hover:text-primary"
                       >
                         {item.name}
                       </Link>
-                      <p className="truncate text-xs text-gray-400">{item.category}</p>
+                      <p className="truncate text-xs text-muted-foreground">{item.category}</p>
                     </div>
                   </div>
                   <StatusBadge status={item.status} />
                 </div>
                 <div className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-400">Owner</span>
-                    <span className="truncate text-right text-gray-300">
+                    <span className="text-muted-foreground">Owner</span>
+                    <span className="truncate text-right text-foreground/80">
                       {item.owner?.name || item.owner?.email || "-"}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-gray-400">Price/Day</span>
-                    <span className="font-semibold text-white">{formatCurrency(item.rentalPrice)}</span>
+                    <span className="text-muted-foreground">Price/Day</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(item.rentalPrice)}</span>
                   </div>
                 </div>
-                <div className="mt-4 flex flex-wrap justify-end gap-1 border-t border-white/5 pt-3">
+                <div className="mt-4 flex flex-wrap justify-end gap-1 border-t border-border pt-3">
                   {item.status !== "approved" && (
                     <Button
                       variant="ghost"
                       size="icon-sm"
                       aria-label={`Approve ${item.name}`}
-                      className="text-emerald-400 hover:text-emerald-300"
+                      className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
                       onClick={() => handleStatus(item, "approved")}
                     >
                       <CheckIcon className="size-4" />
@@ -344,7 +344,7 @@ export function AdminEquipmentTable() {
                       variant="ghost"
                       size="icon-sm"
                       aria-label={`Reject ${item.name}`}
-                      className="text-amber-400 hover:text-amber-300"
+                      className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
                       onClick={() => handleStatus(item, "rejected")}
                     >
                       <XIcon className="size-4" />

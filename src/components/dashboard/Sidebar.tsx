@@ -81,7 +81,7 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
   };
 
   return (
-    <div className="flex h-full flex-col gap-2 bg-[#0b1220] text-gray-100">
+    <div className="flex h-full flex-col gap-2 bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2 px-4 py-5">
         <Link href="/" className="flex items-center gap-2" onClick={onNavigate}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,13 +92,13 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
             height={36}
             className="h-9 w-9"
           />
-          <span className="font-heading text-lg font-bold tracking-tight text-white">
+          <span className="font-heading text-lg font-bold tracking-tight text-foreground">
             Gear<span className="text-primary">Loop</span>
           </span>
         </Link>
       </div>
 
-      <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+      <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {role} dashboard
       </p>
 
@@ -113,7 +113,7 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
               className={`flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-transparent text-gray-300 hover:bg-white/5 hover:text-white"
+                  : "border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               }`}
             >
               <Icon className="size-4 shrink-0" />
@@ -123,7 +123,7 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
         })}
       </nav>
 
-      <div className="mt-auto border-t border-white/10 p-3">
+      <div className="mt-auto border-t border-sidebar-border p-3">
         <div className="mb-3 flex items-center gap-2.5 px-2">
           <Avatar className="h-9 w-9">
             <AvatarImage
@@ -131,16 +131,16 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
               alt={user.name}
               className="rounded-full object-cover"
             />
-            <AvatarFallback className="flex items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-400">
+            <AvatarFallback className="flex items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-400">
               {user.name?.charAt(0)?.toUpperCase() || "G"}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-white">{user.name}</p>
-            <p className="truncate text-xs capitalize text-gray-400">{user.role}</p>
-            <p className="truncate text-xs text-gray-400">{user.email}</p>
+            <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
+            <p className="truncate text-xs capitalize text-muted-foreground">{user.role}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
             {(user as { isDemo?: boolean }).isDemo && (
-              <span className="mt-1 inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+              <span className="mt-1 inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
                 READ-ONLY
               </span>
             )}
@@ -150,7 +150,7 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
           <Link
             href="/"
             onClick={onNavigate}
-            className="flex items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             <ExternalLinkIcon className="size-4 shrink-0" />
             Back to Website
@@ -158,7 +158,7 @@ export function SidebarContent({ role, user, onNavigate }: SidebarContentProps) 
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+            className="flex items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
           >
             <LogOutIcon className="size-4 shrink-0" />
             Logout
@@ -178,7 +178,7 @@ export function DashboardSidebar({ role, user }: { role: UserRole; user: AppUser
         <SidebarContent role={role} user={user} />
       </aside>
 
-      <div className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-white/10 bg-[#0b1220] px-4 text-gray-100 lg:hidden">
+      <div className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background px-4 text-foreground lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
             render={
@@ -186,13 +186,13 @@ export function DashboardSidebar({ role, user }: { role: UserRole; user: AppUser
                 variant="ghost"
                 size="icon"
                 aria-label="Open dashboard menu"
-                className="text-gray-200 hover:bg-white/5 hover:text-white"
+                className="text-foreground hover:bg-muted/50"
               />
             }
           >
             <MenuIcon className="size-5" />
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 border-white/10 bg-[#0b1220] p-0">
+          <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground">
             <SheetHeader className="sr-only">
               <SheetTitle>Dashboard menu</SheetTitle>
             </SheetHeader>
@@ -213,7 +213,7 @@ export function DashboardSidebar({ role, user }: { role: UserRole; user: AppUser
             height={32}
             className="h-8 w-8"
           />
-          <span className="font-heading text-base font-bold text-white">
+          <span className="font-heading text-base font-bold text-foreground">
             Gear<span className="text-primary">Loop</span>
           </span>
         </Link>
@@ -224,7 +224,7 @@ export function DashboardSidebar({ role, user }: { role: UserRole; user: AppUser
             alt={user.name}
             className="rounded-full object-cover"
           />
-          <AvatarFallback className="flex items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-400">
+          <AvatarFallback className="flex items-center justify-center rounded-full bg-orange-500/15 font-semibold text-orange-600 dark:text-orange-400">
             {user.name?.charAt(0)?.toUpperCase() || "G"}
           </AvatarFallback>
         </Avatar>

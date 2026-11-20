@@ -142,15 +142,15 @@ export function ProfileForm({ user }: { user: AppUser }) {
   const roleLabel = user.role.toUpperCase() + " ACCOUNT";
 
   return (
-    <Card className="rounded-2xl border-white/10 bg-[#111827] text-gray-100">
-      <CardHeader className="border-b border-white/10">
-        <CardTitle className="font-heading text-xl text-white">Profile</CardTitle>
-        <CardDescription className="text-sm text-gray-400">
+    <Card className="rounded-2xl border-border bg-card text-foreground">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="font-heading text-xl text-foreground">Profile</CardTitle>
+        <CardDescription className="text-sm text-muted-foreground">
           Manage your personal information.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
-        <div className="flex flex-col items-center gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start">
+        <div className="flex flex-col items-center gap-4 border-b border-border pb-6 sm:flex-row sm:items-start">
           <div className="relative">
             <Avatar className="size-24 ring-4 ring-primary/30">
               <AvatarImage
@@ -158,7 +158,7 @@ export function ProfileForm({ user }: { user: AppUser }) {
                 alt={user.name}
                 className="rounded-full object-cover"
               />
-              <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-orange-500/15 text-2xl font-semibold text-orange-400">
+              <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-orange-500/15 text-2xl font-semibold text-orange-600 dark:text-orange-400">
                 {user.name?.charAt(0)?.toUpperCase() || "G"}
               </AvatarFallback>
             </Avatar>
@@ -169,14 +169,14 @@ export function ProfileForm({ user }: { user: AppUser }) {
             )}
           </div>
           <div className="flex-1 space-y-2 text-center sm:text-left">
-            <p className="font-heading text-xl font-bold text-white">{user.name}</p>
-            <p className="text-sm text-gray-400">{user.email}</p>
+            <p className="font-heading text-xl font-bold text-foreground">{user.name}</p>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <Badge className="gap-1 bg-primary/15 text-primary">
                 <ShieldCheckIcon className="size-3" />
                 {roleLabel}
               </Badge>
-              {isDemo && <Badge variant="secondary" className="bg-white/10 text-gray-200">READ-ONLY</Badge>}
+              {isDemo && <Badge variant="secondary" className="bg-muted text-muted-foreground">READ-ONLY</Badge>}
             </div>
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <Button
@@ -184,12 +184,12 @@ export function ProfileForm({ user }: { user: AppUser }) {
                 variant="outline"
                 onClick={() => fileRef.current?.click()}
                 disabled={isDemo || uploading}
-                className="border-white/10 bg-transparent text-gray-100 hover:bg-white/5 hover:text-white"
+                className="border-border bg-transparent text-foreground hover:bg-muted/50 hover:text-foreground"
               >
                 <CameraIcon className="size-4" />
                 Change Avatar
               </Button>
-              <p className="text-xs text-gray-400">JPG or PNG. Max 4MB.</p>
+              <p className="text-xs text-muted-foreground">JPG or PNG. Max 4MB.</p>
             </div>
             <input
               ref={fileRef}
@@ -205,12 +205,12 @@ export function ProfileForm({ user }: { user: AppUser }) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-200">Full Name</Label>
+              <Label htmlFor="name" className="text-foreground">Full Name</Label>
               <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                <UserIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="name"
-                  className="h-10 rounded-lg border-white/10 bg-[#0b1220] pl-9 text-white placeholder:text-gray-500 focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                  className="h-10 rounded-lg border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
                   disabled={isDemo}
                   {...form.register("name")}
                 />
@@ -220,25 +220,25 @@ export function ProfileForm({ user }: { user: AppUser }) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-200">Email Address</Label>
+              <Label htmlFor="email" className="text-foreground">Email Address</Label>
               <div className="relative">
-                <MailIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                <MailIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   value={user.email}
                   disabled
-                  className="h-10 rounded-lg border-white/10 bg-white/5 pl-9 text-gray-300"
+                  className="h-10 rounded-lg border-border bg-muted/50 pl-9 text-foreground/80"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-gray-200">Phone Number</Label>
+              <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
               <div className="relative">
-                <PhoneIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                <PhoneIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="phone"
                   placeholder="+880 1711 000000"
-                  className="h-10 rounded-lg border-white/10 bg-[#0b1220] pl-9 text-white placeholder:text-gray-500 focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                  className="h-10 rounded-lg border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
                   disabled={isDemo}
                   {...form.register("phone")}
                 />
@@ -248,30 +248,30 @@ export function ProfileForm({ user }: { user: AppUser }) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="photo" className="text-gray-200">Avatar Hosted URL</Label>
+              <Label htmlFor="photo" className="text-foreground">Avatar Hosted URL</Label>
               <div className="relative">
-                <CameraIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+                <CameraIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="photo"
                   placeholder="https://i.ibb.co/..."
-                  className="h-10 rounded-lg border-white/10 bg-[#0b1220] pl-9 text-white placeholder:text-gray-500 focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                  className="h-10 rounded-lg border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
                   disabled={isDemo}
                   {...form.register("photo")}
                 />
               </div>
-              <p className="text-xs text-gray-400">Hosted automatically via ImgBB upon uploading above.</p>
+              <p className="text-xs text-muted-foreground">Hosted automatically via ImgBB upon uploading above.</p>
               {form.formState.errors.photo && (
                 <p className="text-xs text-destructive">{form.formState.errors.photo.message}</p>
               )}
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="address" className="text-gray-200">Delivery / Physical Address</Label>
+              <Label htmlFor="address" className="text-foreground">Delivery / Physical Address</Label>
               <div className="relative">
-                <MapPinIcon className="absolute left-3 top-3 size-4 text-gray-500" />
+                <MapPinIcon className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
                   id="address"
                   placeholder="Road, Area, District"
-                  className="h-10 rounded-lg border-white/10 bg-[#0b1220] pl-9 text-white placeholder:text-gray-500 focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                  className="h-10 rounded-lg border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:border-orange-500/50 focus-visible:ring-2 focus-visible:ring-orange-500/50"
                   disabled={isDemo}
                   {...form.register("address")}
                 />

@@ -25,11 +25,11 @@ const BOOKING_STATUSES: BookingStatus[] = [
 ];
 
 const STATUS_PILL_STYLES: Record<string, string> = {
-  pending: "border-amber-500/30 bg-amber-500/15 text-amber-400",
-  active: "border-blue-500/30 bg-blue-500/15 text-blue-400",
-  completed: "border-green-500/30 bg-green-500/15 text-green-400",
-  cancelled: "border-red-500/30 bg-red-500/15 text-red-400",
-  confirmed: "border-green-500/30 bg-green-500/15 text-green-400",
+  pending: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400",
+  active: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-400",
+  completed: "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400",
+  cancelled: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400",
+  confirmed: "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400",
 };
 
 interface AdminRentalsTableProps {
@@ -89,7 +89,7 @@ export function AdminRentalsTable({
       <SelectTrigger
         className={`h-8 w-[130px] rounded-full border px-3 py-1 text-xs font-medium capitalize ${
           STATUS_PILL_STYLES[rental.bookingStatus] ??
-          "border-white/10 bg-white/5 text-gray-300"
+          "border-border bg-muted/50 text-foreground/80"
         } ${align === "right" ? "ml-auto" : ""}`}
       >
         <SelectValue />
@@ -107,39 +107,39 @@ export function AdminRentalsTable({
   return (
     <section>
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-white">{title}</h2>
-        <p className="text-sm text-gray-400">{description}</p>
+        <h2 className="text-xl font-bold text-foreground">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111827]">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-t border-white/5 px-5 py-4 first:border-t-0">
-              <Skeleton className="h-10 w-40 bg-white/10" />
-              <Skeleton className="h-10 flex-1 bg-white/10" />
-              <Skeleton className="hidden h-10 w-32 bg-white/10 md:block" />
-              <Skeleton className="h-8 w-24 bg-white/10" />
+            <div key={i} className="flex items-center gap-4 border-t border-border px-5 py-4 first:border-t-0">
+              <Skeleton className="h-10 w-40 bg-muted/50" />
+              <Skeleton className="h-10 flex-1 bg-muted/50" />
+              <Skeleton className="hidden h-10 w-32 bg-muted/50 md:block" />
+              <Skeleton className="h-8 w-24 bg-muted/50" />
             </div>
           ))}
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-10 text-center">
-          <p className="font-medium text-white">Rentals could not be loaded.</p>
-          <p className="mt-1 text-sm text-gray-400">{error}</p>
+          <p className="font-medium text-foreground">Rentals could not be loaded.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
         </div>
       ) : rentals.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-[#111827] p-12 text-center">
-          <CalendarSearchIcon className="mx-auto size-10 text-gray-500" />
-          <p className="mt-3 font-medium text-white">No bookings yet.</p>
-          <p className="mt-1 text-sm text-gray-400">
+        <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+          <CalendarSearchIcon className="mx-auto size-10 text-muted-foreground" />
+          <p className="mt-3 font-medium text-foreground">No bookings yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             Bookings will appear here as soon as customers start renting.
           </p>
         </div>
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-[#111827] md:block">
+          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card md:block">
             <table className="w-full table-fixed text-sm">
-              <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-gray-400">
+              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="w-[26%] px-5 py-3 font-medium">Equipment</th>
                   <th className="w-[20%] px-5 py-3 font-medium">Customer</th>
@@ -156,40 +156,40 @@ export function AdminRentalsTable({
                     <tr
                       key={rental.id ?? `rental-${index}`}
                       onClick={() => onSelect?.(rental)}
-                      className="border-t border-white/5 transition hover:bg-white/5"
+                      className="border-t border-border transition hover:bg-muted/50"
                     >
                       <td className="px-5 py-4 align-middle">
-                        <p className="truncate font-medium text-white" title={rental.equipmentName}>
+                        <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
                           {rental.equipmentName}
                         </p>
                         <p
-                          className="truncate text-xs text-gray-400"
+                          className="truncate text-xs text-muted-foreground"
                           title={txn}
                         >
                           {txn}
                         </p>
                       </td>
                       <td className="px-5 py-4 align-middle">
-                        <p className="truncate text-white" title={rental.customer?.name || ""}>
+                        <p className="truncate text-foreground" title={rental.customer?.name || ""}>
                           {rental.customer?.name || "-"}
                         </p>
                         <p
-                          className="truncate text-xs text-gray-400"
+                          className="truncate text-xs text-muted-foreground"
                           title={rental.customer?.email || ""}
                         >
                           {rental.customer?.email || "-"}
                         </p>
                       </td>
                       <td className="px-5 py-4 align-middle">
-                        <p className="truncate text-gray-300" title={rental.ownerEmail || ""}>
+                        <p className="truncate text-foreground/80" title={rental.ownerEmail || ""}>
                           {rental.ownerEmail || "-"}
                         </p>
                       </td>
-                      <td className="px-5 py-4 align-middle text-gray-300">
+                      <td className="px-5 py-4 align-middle text-foreground/80">
                         <p>{formatDate(rental.startDate)}</p>
-                        <p className="text-xs text-gray-400">{formatDate(rental.endDate)}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(rental.endDate)}</p>
                       </td>
-                      <td className="px-5 py-4 text-right align-middle font-semibold text-white">
+                      <td className="px-5 py-4 text-right align-middle font-semibold text-foreground">
                         {formatCurrency(rental.totalAmount)}
                       </td>
                       <td className="px-5 py-4 align-middle">
@@ -211,14 +211,14 @@ export function AdminRentalsTable({
                 <div
                   key={rental.id ?? `rental-mobile-${index}`}
                   onClick={() => onSelect?.(rental)}
-                  className="rounded-2xl border border-white/10 bg-[#111827] p-4"
+                  className="rounded-2xl border border-border bg-card p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-white" title={rental.equipmentName}>
+                      <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
                         {rental.equipmentName}
                       </p>
-                      <p className="truncate text-xs text-gray-400" title={txn}>
+                      <p className="truncate text-xs text-muted-foreground" title={txn}>
                         Txn: {txn}
                       </p>
                     </div>
@@ -226,27 +226,27 @@ export function AdminRentalsTable({
                   </div>
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex justify-between gap-4">
-                      <span className="text-gray-400">Customer</span>
+                      <span className="text-muted-foreground">Customer</span>
                       <div className="min-w-0 text-right">
-                        <p className="truncate text-white">{rental.customer?.name || "-"}</p>
-                        <p className="truncate text-xs text-gray-400">{rental.customer?.email || "-"}</p>
+                        <p className="truncate text-foreground">{rental.customer?.name || "-"}</p>
+                        <p className="truncate text-xs text-muted-foreground">{rental.customer?.email || "-"}</p>
                       </div>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-gray-400">Owner</span>
-                      <span className="truncate text-right text-gray-300" title={rental.ownerEmail || ""}>
+                      <span className="text-muted-foreground">Owner</span>
+                      <span className="truncate text-right text-foreground/80" title={rental.ownerEmail || ""}>
                         {rental.ownerEmail || "-"}
                       </span>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-gray-400">Period</span>
-                      <span className="text-right text-gray-300">
+                      <span className="text-muted-foreground">Period</span>
+                      <span className="text-right text-foreground/80">
                         {formatDate(rental.startDate)} – {formatDate(rental.endDate)}
                       </span>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-gray-400">Total</span>
-                      <span className="font-semibold text-white">{formatCurrency(rental.totalAmount)}</span>
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(rental.totalAmount)}</span>
                     </div>
                   </div>
                 </div>
