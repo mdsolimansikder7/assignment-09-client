@@ -26,14 +26,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking, BookingStatus } from "@/types";
 
-type ActionType = "active" | "completed" | "cancelled";
 type StatusFilter = "all" | "confirmed" | "active" | "completed" | "cancelled";
 
-interface PendingAction {
+interface PendingStatusChange {
   booking: Booking;
-  action: ActionType;
-  label: string;
-  description: string;
+  nextStatus: BookingStatus;
 }
 
 function periodDays(startDate?: string, endDate?: string) {
@@ -45,28 +42,72 @@ function periodDays(startDate?: string, endDate?: string) {
   return diff >= 0 ? diff + 1 : 0;
 }
 
-function getActions(booking: Booking): { action: ActionType; label: string }[] {
-  const actions: { action: ActionType; label: string }[] = [];
-  if (booking.bookingStatus === "confirmed") {
-    actions.push({ action: "active", label: "Mark Active" });
-  }
-  if (booking.bookingStatus === "active") {
-    actions.push({ action: "completed", label: "Mark Completed" });
-  }
+function getOwnerNextStatuses(booking: Booking): BookingStatus[] {
+  const next: BookingStatus[] = [];
+  if (booking.bookingStatus === "confirmed") next.push("active");
+  if (booking.bookingStatus === "active") next.push("completed");
   if (
     (booking.bookingStatus === "pending" || booking.bookingStatus === "confirmed") &&
     booking.paymentStatus !== "paid"
   ) {
-    actions.push({ action: "cancelled", label: "Cancel" });
+    next.push("cancelled");
   }
-  return actions;
+  return next;
 }
 
-function actionDescription(booking: Booking, action: ActionType) {
-  const base = `Equipment: ${booking.equipmentName}. Customer: ${booking.customer?.name || "—"}.`;
-  if (action === "active") return `${base} This will mark the rental as active (handed over).`;
-  if (action === "completed") return `${base} This will mark the rental as completed and notify the customer.`;
-  return `${base} This will cancel the booking.`;
+function paymentPillClass(status: string) {
+  const value = status.toLowerCase();
+  if (value === "paid") {
+    return "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400";
+  }
+  if (value === "pending" || value === "unpaid") {
+    return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400";
+  }
+  return "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400";
+}
+
+function PaymentPill({ status }: { status: string }) {
+  const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : "—";
+  return (
+    <span
+      className={`inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${paymentPillClass(status)}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function bookingPillClass(status: string) {
+  const value = status.toLowerCase();
+  if (value === "completed" || value === "active" || value === "confirmed") {
+    return "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-400";
+  }
+  if (value === "pending") {
+    return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400";
+  }
+  return "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400";
+}
+
+function BookingReadOnlyPill({ status }: { status: string }) {
+  const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : "—";
+  return (
+    <span
+      className={`inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${bookingPillClass(status)}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function statusLabel(status: string) {
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : status;
+}
+
+function confirmText(booking: Booking, nextStatus: BookingStatus) {
+  const base = `Equipment: ${booking.equipmentName}\nCustomer: ${booking.customer?.name || "—"} (${booking.customer?.email || "—"})`;
+  if (nextStatus === "active") return `${base}\n\nMark this rental as Active?`;
+  if (nextStatus === "completed") return `${base}\n\nMark this rental as Completed? The customer will be notified.`;
+  return `${base}\n\nCancel this booking? This action cannot be undone.`;
 }
 
 export function OwnerRentalsTable() {
@@ -74,12 +115,11 @@ export function OwnerRentalsTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("all");
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [actingId, setActingId] = useState<string | null>(null);
+  const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
         const res = await api.get<{ data: Booking[] }>("/bookings/owner");
@@ -90,7 +130,6 @@ export function OwnerRentalsTable() {
         if (!cancelled) setLoading(false);
       }
     }
-
     load();
     return () => {
       cancelled = true;
@@ -105,43 +144,63 @@ export function OwnerRentalsTable() {
   const summary = useMemo(() => {
     const active = rentals.filter((r) => r.bookingStatus === "active").length;
     const toHandOver = rentals.filter((r) => r.bookingStatus === "confirmed").length;
-    const completed = rentals.filter((r) => r.bookingStatus === "completed").length;
-    const cancelled = rentals.filter((r) => r.bookingStatus === "cancelled").length;
-    return { active, toHandOver, completed, cancelled, total: rentals.length };
+    return { active, toHandOver };
   }, [rentals]);
 
-  const openAction = (booking: Booking, action: ActionType, label: string) => {
-    setPendingAction({
-      booking,
-      action,
-      label,
-      description: actionDescription(booking, action),
-    });
+  const requestStatusChange = (booking: Booking, nextStatus: BookingStatus) => {
+    if (nextStatus === booking.bookingStatus) return;
+    setPendingChange({ booking, nextStatus });
   };
 
-  const confirmAction = async () => {
-    if (!pendingAction) return;
-    const { booking, action } = pendingAction;
-    setActingId(booking.id);
+  const confirmStatusChange = async () => {
+    if (!pendingChange) return;
+    const { booking, nextStatus } = pendingChange;
+    setUpdatingId(booking.id);
     try {
       const res = await api.patch<{ data: Booking }>(`/bookings/${booking.id}/owner-status`, {
-        bookingStatus: action,
+        bookingStatus: nextStatus,
       });
       const updated = res.data?.data;
-      if (updated) {
-        setRentals((prev) => prev.map((r) => (r.id === booking.id ? { ...r, ...updated } : r)));
-      } else {
-        setRentals((prev) =>
-          prev.map((r) => (r.id === booking.id ? { ...r, bookingStatus: action as BookingStatus } : r)),
-        );
-      }
-      toast.success(`Booking marked as ${action}`);
-      setPendingAction(null);
+      setRentals((prev) =>
+        prev.map((r) => (r.id === booking.id ? { ...r, ...(updated || {}), bookingStatus: updated?.bookingStatus || nextStatus } : r)),
+      );
+      toast.success(`Booking marked as ${nextStatus}`);
+      setPendingChange(null);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
-      setActingId(null);
+      setUpdatingId(null);
     }
+  };
+
+  const renderBookingStatusControl = (rental: Booking) => {
+    const nextStatuses = getOwnerNextStatuses(rental);
+    const isTerminal = rental.bookingStatus === "completed" || rental.bookingStatus === "cancelled";
+    if (isTerminal || nextStatuses.length === 0) {
+      return <BookingReadOnlyPill status={rental.bookingStatus} />;
+    }
+
+    return (
+      <Select
+        value={rental.bookingStatus}
+        onValueChange={(v) => requestStatusChange(rental, v as BookingStatus)}
+        disabled={updatingId === rental.id}
+      >
+        <SelectTrigger
+          size="sm"
+          className="w-full min-w-0 rounded-lg border border-border bg-card px-3 text-foreground capitalize disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent side="bottom" align="start" sideOffset={4} alignItemWithTrigger={false} className="z-[60]">
+          {nextStatuses.map((status) => (
+            <SelectItem key={status} value={status} className="capitalize">
+              {statusLabel(status)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
   };
 
   if (loading) {
@@ -166,17 +225,15 @@ export function OwnerRentalsTable() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">
-            {summary.active} active, {summary.toHandOver} to hand over, {summary.completed} completed, {summary.cancelled} cancelled
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {summary.active} active, {summary.toHandOver} to hand over
+        </p>
         <div className="w-full sm:w-56">
           <Select value={filter} onValueChange={(v) => setFilter(v as StatusFilter)}>
-            <SelectTrigger className="w-full border-border bg-card text-foreground">
+            <SelectTrigger className="w-full rounded-lg border border-border bg-card text-foreground">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent side="bottom" align="start" sideOffset={4} alignItemWithTrigger={false} className="z-[60]">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="active">Active</SelectItem>
@@ -190,47 +247,39 @@ export function OwnerRentalsTable() {
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <CalendarSearchIcon className="mx-auto size-8 text-muted-foreground/40" />
-          <p className="mt-3 font-medium text-foreground">No rentals found</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {rentals.length === 0
-              ? "Bookings for your equipment will appear here."
-              : "No rentals match the selected status filter."}
-          </p>
+          <p className="mt-3 font-medium text-foreground">No rentals yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Bookings for your equipment will appear here.</p>
         </div>
       ) : (
         <>
-          <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-border bg-card">
+          <div className="hidden md:block w-full rounded-xl border border-border bg-card">
             <table className="w-full table-fixed text-sm">
               <colgroup>
-                <col className="w-[18%]" />
-                <col className="w-[17%]" />
-                <col className="w-[14%]" />
+                <col className="w-[20%]" />
+                <col className="w-[24%]" />
+                <col className="w-[16%]" />
                 <col className="w-[8%]" />
-                <col className="w-[11%]" />
-                <col className="w-[10%]" />
-                <col className="w-[10%]" />
                 <col className="w-[12%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
               </colgroup>
               <thead className="bg-card">
                 <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Customer Information</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Equipment Information</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Rental Duration</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Required Quantity</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Booking Amount</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Payment Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Booking Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Customer Information</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Equipment Name</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Rental Duration</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Qty</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Booking Amount</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Payment Status</th>
+                  <th className="px-4 py-4 text-left font-medium text-muted-foreground">Booking Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((rental) => {
                   const days = periodDays(rental.startDate, rental.endDate);
-                  const actions = getActions(rental);
-                  const busy = actingId === rental.id;
                   return (
                     <tr key={rental.id} className="align-top transition hover:bg-muted/40">
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <div className="min-w-0">
                           <p className="truncate font-medium text-foreground" title={rental.customer?.name || "—"}>
                             {rental.customer?.name || "—"}
@@ -238,22 +287,37 @@ export function OwnerRentalsTable() {
                           <p className="truncate text-xs text-muted-foreground" title={rental.customer?.email || ""}>
                             {rental.customer?.email || "—"}
                           </p>
-                          {rental.customer?.phone ? (
-                            <p className="truncate text-xs text-muted-foreground" title={rental.customer.phone}>
-                              {rental.customer.phone}
-                            </p>
-                          ) : null}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
-                          {rental.equipmentName}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground" title={rental.equipmentId}>
-                          ID: {rental.equipmentId}
-                        </p>
+                      <td className="px-4 py-4">
+                        <div className="flex items-start gap-3 min-w-0">
+                          {rental.equipmentImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={rental.equipmentImage}
+                              alt={rental.equipmentName}
+                              className="size-10 shrink-0 rounded-md object-cover border border-border bg-muted"
+                            />
+                          ) : (
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-xs font-medium text-muted-foreground">
+                              {rental.equipmentName?.charAt(0)?.toUpperCase() || "E"}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
+                              {rental.equipmentName}
+                            </p>
+                            {rental.transactionId ? (
+                              <p className="truncate text-xs text-muted-foreground" title={rental.transactionId}>
+                                Txn: {rental.transactionId}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">Txn: —</p>
+                            )}
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-foreground">
+                      <td className="px-4 py-4 text-foreground">
                         <div className="whitespace-normal leading-snug">
                           <span className="block">{formatDate(rental.startDate)}</span>
                           <span className="block text-muted-foreground">to {formatDate(rental.endDate)}</span>
@@ -262,35 +326,10 @@ export function OwnerRentalsTable() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-foreground">{rental.quantity}</td>
-                      <td className="px-4 py-3 text-foreground">{formatCurrency(rental.totalAmount)}</td>
-                      <td className="px-4 py-3"><StatusBadge status={rental.paymentStatus} /></td>
-                      <td className="px-4 py-3"><StatusBadge status={rental.bookingStatus} /></td>
-                      <td className="px-4 py-3">
-                        {actions.length === 0 ? (
-                          <span className="text-muted-foreground">-</span>
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            {actions.map((item) => (
-                              <Button
-                                key={item.action}
-                                type="button"
-                                size="sm"
-                                variant={item.action === "cancelled" ? "outline" : "default"}
-                                className={
-                                  item.action === "cancelled"
-                                    ? "w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                    : "w-full bg-primary text-primary-foreground hover:bg-primary-hover"
-                                }
-                                disabled={busy}
-                                onClick={() => openAction(rental, item.action, item.label)}
-                              >
-                                {busy ? "..." : item.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </td>
+                      <td className="px-4 py-4 text-foreground">{rental.quantity}</td>
+                      <td className="px-4 py-4 font-medium text-foreground">{formatCurrency(rental.totalAmount)}</td>
+                      <td className="px-4 py-4"><PaymentPill status={rental.paymentStatus} /></td>
+                      <td className="px-4 py-4">{renderBookingStatusControl(rental)}</td>
                     </tr>
                   );
                 })}
@@ -301,31 +340,44 @@ export function OwnerRentalsTable() {
           <div className="space-y-3 md:hidden">
             {filtered.map((rental) => {
               const days = periodDays(rental.startDate, rental.endDate);
-              const actions = getActions(rental);
-              const busy = actingId === rental.id;
+              const isTerminal = rental.bookingStatus === "completed" || rental.bookingStatus === "cancelled";
               return (
                 <div key={rental.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground" title={rental.equipmentName}>
-                        {rental.equipmentName}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">Equipment ID: {rental.equipmentId}</p>
+                    <div className="flex min-w-0 items-start gap-3">
+                      {rental.equipmentImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={rental.equipmentImage}
+                          alt={rental.equipmentName}
+                          className="size-12 shrink-0 rounded-md object-cover border border-border bg-muted"
+                        />
+                      ) : (
+                        <div className="flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-sm font-medium text-muted-foreground">
+                          {rental.equipmentName?.charAt(0)?.toUpperCase() || "E"}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-foreground" title={rental.equipmentName}>{rental.equipmentName}</p>
+                        <p className="truncate text-xs text-muted-foreground" title={rental.transactionId || ""}>
+                          Txn: {rental.transactionId || "—"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      <StatusBadge status={rental.bookingStatus} />
-                      <StatusBadge status={rental.paymentStatus} />
+                    <div className="w-36 shrink-0">
+                      {isTerminal || getOwnerNextStatuses(rental).length === 0 ? (
+                        <div className="flex justify-end"><BookingReadOnlyPill status={rental.bookingStatus} /></div>
+                      ) : (
+                        renderBookingStatusControl(rental)
+                      )}
                     </div>
                   </div>
 
-                  <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                  <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
                     <div className="min-w-0">
                       <dt className="text-xs font-medium text-muted-foreground">Customer Information</dt>
                       <dd className="truncate text-foreground" title={rental.customer?.name || "—"}>{rental.customer?.name || "—"}</dd>
                       <dd className="truncate text-xs text-muted-foreground" title={rental.customer?.email || ""}>{rental.customer?.email || "—"}</dd>
-                      {rental.customer?.phone ? (
-                        <dd className="truncate text-xs text-muted-foreground" title={rental.customer.phone}>{rental.customer.phone}</dd>
-                      ) : null}
                     </div>
                     <div>
                       <dt className="text-xs font-medium text-muted-foreground">Rental Duration</dt>
@@ -335,42 +387,21 @@ export function OwnerRentalsTable() {
                         {days > 0 && <span className="block text-xs text-muted-foreground">({days} day{days === 1 ? "" : "s"})</span>}
                       </dd>
                     </div>
-                    <div>
-                      <dt className="text-xs font-medium text-muted-foreground">Required Quantity</dt>
-                      <dd className="text-foreground">{rental.quantity}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs font-medium text-muted-foreground">Booking Amount</dt>
-                      <dd className="font-medium text-foreground">{formatCurrency(rental.totalAmount)}</dd>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <dt className="text-xs font-medium text-muted-foreground">Qty</dt>
+                        <dd className="text-foreground">{rental.quantity}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-muted-foreground">Amount</dt>
+                        <dd className="font-medium text-foreground">{formatCurrency(rental.totalAmount)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-muted-foreground">Payment</dt>
+                        <dd className="mt-0.5"><PaymentPill status={rental.paymentStatus} /></dd>
+                      </div>
                     </div>
                   </dl>
-
-                  <div className="mt-4 border-t border-border pt-3">
-                    <p className="mb-2 text-xs font-medium text-muted-foreground">Action</p>
-                    {actions.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">-</p>
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {actions.map((item) => (
-                          <Button
-                            key={item.action}
-                            type="button"
-                            size="sm"
-                            variant={item.action === "cancelled" ? "outline" : "default"}
-                            className={
-                              item.action === "cancelled"
-                                ? "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                : "bg-primary text-primary-foreground hover:bg-primary-hover"
-                            }
-                            disabled={busy}
-                            onClick={() => openAction(rental, item.action, item.label)}
-                          >
-                            {busy ? "..." : item.label}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </div>
               );
             })}
@@ -378,34 +409,29 @@ export function OwnerRentalsTable() {
         </>
       )}
 
-      <Dialog open={!!pendingAction} onOpenChange={(open) => !open && !actingId && setPendingAction(null)}>
+      <Dialog open={!!pendingChange} onOpenChange={(open) => !open && !updatingId && setPendingChange(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{pendingAction?.label || "Confirm action"}</DialogTitle>
+            <DialogTitle>Confirm status change</DialogTitle>
             <DialogDescription className="whitespace-pre-line">
-              {pendingAction?.description || "Are you sure you want to continue?"}
+              {pendingChange ? confirmText(pendingChange.booking, pendingChange.nextStatus) : ""}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPendingAction(null)}
-              disabled={!!actingId}
-            >
+            <Button type="button" variant="outline" onClick={() => setPendingChange(null)} disabled={!!updatingId}>
               Cancel
             </Button>
             <Button
               type="button"
-              onClick={confirmAction}
-              disabled={!!actingId || !pendingAction}
+              onClick={confirmStatusChange}
+              disabled={!!updatingId || !pendingChange}
               className={
-                pendingAction?.action === "cancelled"
-                  ? "border-destructive/30 bg-destructive text-white hover:bg-destructive/90"
+                pendingChange?.nextStatus === "cancelled"
+                  ? "bg-destructive text-white hover:bg-destructive/90"
                   : "bg-primary text-primary-foreground hover:bg-primary-hover"
               }
             >
-              {actingId ? "Updating..." : "Confirm"}
+              {updatingId ? "Updating..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

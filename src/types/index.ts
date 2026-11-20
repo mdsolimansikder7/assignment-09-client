@@ -57,6 +57,7 @@ export interface Booking {
   id: string;
   equipmentId: string;
   equipmentName: string;
+  equipmentImage?: string;
   customer: BookingCustomer;
   ownerEmail: string;
   startDate: string;
