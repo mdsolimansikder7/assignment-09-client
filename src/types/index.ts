@@ -1,5 +1,3 @@
-// Shared TypeScript types for the whole client app.
-// Shapes match the Express backend responses (see src/utils/serialize.js on the server).
 
 export type UserRole = "customer" | "owner" | "admin";
 
@@ -81,7 +79,6 @@ export interface FavoriteItem {
   equipment: Equipment;
 }
 
-// Standard backend envelope for list endpoints.
 export interface ApiListResponse<T> {
   success: boolean;
   data: T[];

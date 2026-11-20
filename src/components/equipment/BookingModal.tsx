@@ -31,11 +31,6 @@ interface BookingModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Booking form: dates, quantity, address → checkout → Stripe.
-// Backend contract:
-// POST /bookings/checkout { equipmentId, startDate, endDate, quantity,
-//   deliveryAddress, phone, notes }
-// → { data: booking, url: stripeCheckoutUrl, sessionId }
 export function BookingModal({ equipment, open, onOpenChange }: BookingModalProps) {
   const router = useRouter();
   const [startDate, setStartDate] = useState("");
@@ -55,7 +50,6 @@ export function BookingModal({ equipment, open, onOpenChange }: BookingModalProp
     setNotes("");
   };
 
-  // Called when the modal opens or closes — always starts from a clean form.
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) resetForm();
     onOpenChange(nextOpen);
@@ -63,7 +57,6 @@ export function BookingModal({ equipment, open, onOpenChange }: BookingModalProp
 
   const days = startDate && endDate ? countDays(startDate, endDate) : 0;
   const unit = rentalUnit(equipment.rentalType);
-  // Client-side estimate; the backend is the source of truth.
   const total = estimateTotal(equipment.rentalType, equipment.rentalPrice, days, quantity);
 
   const maxQuantity = Math.max(1, equipment.availableQuantity);
@@ -89,11 +82,9 @@ export function BookingModal({ equipment, open, onOpenChange }: BookingModalProp
         notes: notes.trim() || undefined,
       });
 
-      // The backend creates the Stripe Checkout session and returns its URL.
       const checkoutUrl = res.data?.url;
       if (checkoutUrl) {
         onOpenChange(false);
-        // External Stripe URL — a full redirect is required here.
         window.location.href = checkoutUrl;
         return;
       }
@@ -195,7 +186,6 @@ export function BookingModal({ equipment, open, onOpenChange }: BookingModalProp
             />
           </div>
 
-          {/* Total summary */}
           <div className="rounded-xl border border-border bg-secondary p-4">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">

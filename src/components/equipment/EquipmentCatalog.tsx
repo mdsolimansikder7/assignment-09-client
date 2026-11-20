@@ -13,7 +13,6 @@ import type { ApiListResponse, Equipment } from "@/types";
 
 const PAGE_SIZE = 12;
 
-// Matches the backend query schema (server-side filtering).
 const FILTER_KEYS = [
   "search",
   "category",
@@ -41,7 +40,6 @@ export function EquipmentCatalogSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
-// Reads filters from the URL and asks the backend for the matching page.
 export function EquipmentCatalog() {
   const router = useRouter();
   const searchParams = useSearchParams();

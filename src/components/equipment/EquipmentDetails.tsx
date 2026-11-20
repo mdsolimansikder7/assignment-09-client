@@ -32,11 +32,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BookingModal } from "@/components/equipment/BookingModal";
 import type { Equipment, FavoriteItem } from "@/types";
 
-// Backend contract:
-// GET /equipment/:id → { data: Equipment } (any logged-in user can read)
-// POST /favorites { equipmentId } → add favorite
-// GET /favorites → { data: FavoriteItem[] } (equipment populated)
-// DELETE /favorites/:equipmentId → remove favorite
 function EquipmentDetailsView({ id }: { id: string }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -57,7 +52,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
         if (cancelled) return;
         setEquipment(eqRes.data?.data ?? null);
 
-        // Favorites endpoint is strictly for customers
         if (user?.role === "customer") {
           try {
             const favRes = await api.get<{ data: FavoriteItem[] }>("/favorites");
@@ -66,7 +60,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
               setIsFavorite(favorites.some((fav) => fav.equipmentId === id));
             }
           } catch {
-            // Favorites failing should not block viewing equipment
           }
         }
       } catch (err: unknown) {
@@ -160,7 +153,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
       </Link>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        {/* Image */}
         <div className="overflow-hidden rounded-2xl border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -170,7 +162,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
           />
         </div>
 
-        {/* Info */}
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="bg-accent text-accent-foreground">{equipment.category}</Badge>
@@ -203,7 +194,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
             </span>
           </div>
 
-          {/* Actions */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {user?.role === "customer" ? (
               <>
@@ -245,7 +235,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
             )}
           </div>
 
-          {/* Description */}
           <div className="mt-8">
             <h2 className="font-heading text-lg font-semibold">Description</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground whitespace-pre-line">
@@ -253,7 +242,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
             </p>
           </div>
 
-          {/* Terms */}
           {equipment.terms && (
             <Card className="mt-6">
               <CardContent className="flex gap-3 p-5">
@@ -270,7 +258,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Owner info */}
       <Card className="mt-10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-heading text-lg">
@@ -312,7 +299,6 @@ function EquipmentDetailsView({ id }: { id: string }) {
 }
 
 export function EquipmentDetails({ id }: { id: string }) {
-  // Details page is private: wait for auth, never bounce on reload.
   return (
     <AuthGuard>
       <div className="container-page">

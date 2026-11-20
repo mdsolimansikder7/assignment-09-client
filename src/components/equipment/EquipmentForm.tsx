@@ -61,8 +61,6 @@ interface EquipmentFormProps {
   onSubmit: (values: EquipmentFormValues) => void | Promise<void>;
 }
 
-// Shared form for "Add Equipment" (owner) and "Update" (owner/admin).
-// Field names match the backend zod schemas exactly.
 export function EquipmentForm({
   initial,
   isSubmitting = false,
@@ -141,7 +139,6 @@ export function EquipmentForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2" noValidate>
-          {/* Name */}
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="eq-name">Name *</Label>
             <Input
@@ -153,7 +150,6 @@ export function EquipmentForm({
             />
           </div>
 
-          {/* Category */}
           <div className="space-y-2">
             <Label>Category *</Label>
             <Select
@@ -173,7 +169,6 @@ export function EquipmentForm({
             </Select>
           </div>
 
-          {/* Rental type */}
           <div className="space-y-2">
             <Label>Rental Type *</Label>
             <Select
@@ -193,7 +188,6 @@ export function EquipmentForm({
             </Select>
           </div>
 
-          {/* Price + quantity */}
           <div className="space-y-2">
             <Label htmlFor="eq-price">Price Per Rental ($) *</Label>
             <Input
@@ -217,7 +211,6 @@ export function EquipmentForm({
             />
           </div>
 
-          {/* Condition / brand / model */}
           <div className="space-y-2">
             <Label htmlFor="eq-condition">Condition (optional)</Label>
             <Input
@@ -246,7 +239,6 @@ export function EquipmentForm({
             />
           </div>
 
-          {/* Location */}
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="eq-location">Location *</Label>
             <Input
@@ -258,7 +250,6 @@ export function EquipmentForm({
             />
           </div>
 
-          {/* Image */}
           <div className="space-y-2 sm:col-span-2">
             <Label>Equipment Image *</Label>
             <div className="flex flex-wrap items-center gap-3">
@@ -299,7 +290,6 @@ export function EquipmentForm({
             </div>
           </div>
 
-          {/* Description */}
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="eq-desc">Description *</Label>
             <textarea
@@ -313,7 +303,6 @@ export function EquipmentForm({
             />
           </div>
 
-          {/* Terms */}
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="eq-terms">Terms &amp; Conditions (optional)</Label>
             <textarea

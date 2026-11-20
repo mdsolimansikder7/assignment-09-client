@@ -16,19 +16,16 @@ import {
 } from "@/components/ui/select";
 import { CATEGORIES, RENTAL_TYPES } from "@/types";
 
-// Matches the backend sort values: price_asc / price_desc / newest.
 const SORT_OPTIONS = [
   { value: "newest", label: "Recently Added" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
-// All filters live in the URL so the backend can do the actual filtering.
 export function Filters() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Local state for text inputs (debounced before hitting the URL).
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
@@ -37,11 +34,10 @@ export function Filters() {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
-    params.delete("page"); // any filter change resets pagination
+    params.delete("page");
     router.replace(`/equipment?${params.toString()}`, { scroll: false });
   };
 
-  // Debounced sync for the text inputs.
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search !== (searchParams.get("search") ?? "")) update("search", search);
@@ -59,13 +55,11 @@ export function Filters() {
     router.replace("/equipment", { scroll: false });
   };
 
-  // Base UI Select may pass null when a value is cleared.
   const toFilterValue = (value: string | null) => (!value || value === "all" ? "" : value);
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Search (name / location) */}
         <div className="space-y-2">
           <Label htmlFor="equipment-search">Search</Label>
           <div className="relative">
@@ -80,7 +74,6 @@ export function Filters() {
           </div>
         </div>
 
-        {/* Category */}
         <div className="space-y-2">
           <Label>Category</Label>
           <Select
@@ -101,7 +94,6 @@ export function Filters() {
           </Select>
         </div>
 
-        {/* Rental type */}
         <div className="space-y-2">
           <Label>Rental Type</Label>
           <Select
@@ -122,7 +114,6 @@ export function Filters() {
           </Select>
         </div>
 
-        {/* Sort */}
         <div className="space-y-2">
           <Label>Sort By</Label>
           <Select
@@ -142,7 +133,6 @@ export function Filters() {
           </Select>
         </div>
 
-        {/* Price range */}
         <div className="space-y-2">
           <Label>Min Price ($)</Label>
           <Input
@@ -164,7 +154,6 @@ export function Filters() {
           />
         </div>
 
-        {/* Availability (backend supports "available") */}
         <div className="space-y-2">
           <Label>Availability</Label>
           <Select
@@ -181,7 +170,6 @@ export function Filters() {
           </Select>
         </div>
 
-        {/* Reset */}
         <div className="flex items-end">
           <Button variant="outline" className="w-full" onClick={resetAll}>
             <RotateCcwIcon className="size-4" />
