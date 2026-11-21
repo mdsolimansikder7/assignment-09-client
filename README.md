@@ -8,7 +8,7 @@
 | --- | --- |
 | 🌐 **Live site** | [gearloop-rent.vercel.app](https://gearloop-rent.vercel.app/) |
 | 💻 **Client repo** | [mdsolimansikder7/assignment-09-client](https://github.com/mdsolimansikder7/assignment-09-client) |
-| 🖥️ **Server repo** | _add your server repository link here_ |
+| 🖥️ **Server repo** |https://github.com/mdsolimansikder7/assignment-09-server |
 
 ---
 
