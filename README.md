@@ -8,7 +8,7 @@
 | --- | --- |
 | 🌐 **Live site** | [gearloop-rent.vercel.app](https://gearloop-rent.vercel.app/) |
 | 💻 **Client repo** | [mdsolimansikder7/assignment-09-client](https://github.com/mdsolimansikder7/assignment-09-client) |
-| 🖥️ **Server repo** |https://github.com/mdsolimansikder7/assignment-09-server |
+| 🖥️ **Server repo** | [mdsolimansikder7/assignment-09-server](https://github.com/mdsolimansikder7/assignment-09-server) |
 
 ---
 
@@ -169,7 +169,7 @@ Auth routes (BetterAuth) are served by **Next.js** at `/api/auth/*`. The Express
 | GET | `/api/equipment/:id` | Single equipment (auth required) |
 | POST | `/api/equipment` | Owner creates listing (status `pending`) |
 | GET | `/api/equipment/owner/mine` | Owner's listings |
-| PUT / DELETE | `/api/equipment/:id` | Update / delete |
+| PATCH / DELETE | `/api/equipment/:id` | Update / delete |
 
 ### Bookings and payments
 
@@ -180,7 +180,7 @@ Auth routes (BetterAuth) are served by **Next.js** at `/api/auth/*`. The Express
 | GET | `/api/bookings/owner` | Owner's bookings |
 | GET | `/api/admin/bookings` | All bookings (admin) |
 | PATCH | `/api/admin/bookings/:id` | Update booking status |
-| GET / POST | `/api/payments/verify/:sessionId` | Verify Stripe payment status |
+| GET | `/api/payments/verify/:sessionId` | Verify Stripe payment status |
 
 ### Favorites, users and analytics
 
